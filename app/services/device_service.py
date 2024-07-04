@@ -1,5 +1,7 @@
-from typing import Any, Sequence
+from typing import Sequence
+
 from loguru import logger
+
 from app.db.models.device import Device
 from app.schemas.device_schema import DeviceFromApi, DeviceGET
 from app.services.helper import with_uow

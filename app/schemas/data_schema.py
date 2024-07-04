@@ -1,6 +1,9 @@
 from datetime import datetime
+
 from pydantic import Field
+
 from app.schemas.base_schema import GeneralSchema
+
 
 class DataExternalIdMinix(GeneralSchema):
     created_at: datetime  = Field(validation_alias="created_at")

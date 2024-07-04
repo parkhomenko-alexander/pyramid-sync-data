@@ -1,6 +1,7 @@
 import asyncio
 from functools import wraps
 
+
 def async_to_sync(task_func):
     @wraps(task_func)
     def wrapper(*args, **kwargs):

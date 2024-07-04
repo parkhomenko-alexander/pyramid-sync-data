@@ -8,7 +8,7 @@ from requests import Response
 from app.celery.celery_app import celery_app
 from app.celery.helpers import async_to_sync
 from app.celery.pyramid_api import APIRoutes, PyramidAPI, SOAPActionsTypes
-from app.celery.types import TimePartition, TimeRangeForDataSync
+from app.celery.shared_types import TimePartition, TimeRangeForDataSync
 from app.schemas.data_schema import DataAddSheme
 from app.schemas.device_schema import DeviceFromApi, DeviceGET
 from app.schemas.tag_schema import TagGET

@@ -1,9 +1,4 @@
-from datetime import datetime, tzinfo
-from typing import TypeVar
-from typing_extensions import Annotated
-from pytz import timezone
-from sqlalchemy import DateTime, PrimaryKeyConstraint, String
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry, declarative_base
+from sqlalchemy.orm import Mapped, declarative_base, mapped_column
 
 Base = declarative_base()
 

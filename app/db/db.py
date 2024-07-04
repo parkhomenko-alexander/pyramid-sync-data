@@ -1,12 +1,9 @@
-from venv import logger
 from sqlalchemy import NullPool
-from sqlalchemy.ext.asyncio import (
-    create_async_engine,
-    async_sessionmaker,
-    AsyncEngine
-)
+from sqlalchemy.ext.asyncio import (AsyncEngine, async_sessionmaker,
+                                    create_async_engine)
 
 from config import config
+
 
 class Database:
     def __init__(self, url: str, echo: bool = False):

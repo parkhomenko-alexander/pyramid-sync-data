@@ -1,20 +1,17 @@
-from dataclasses import dataclass
 from datetime import datetime, timedelta
-import json
-from os import sep
-from time import sleep
-from typing import Any, Literal, TypedDict
-import bs4
-from loguru import logger
-from requests import Session, Response, post, get
 from enum import Enum
+from time import sleep
+from typing import Any, Literal
 
+import bs4
 import urllib3
+from dateutil.relativedelta import relativedelta
+from loguru import logger
+from requests import Response, Session
 
-from app.celery.types import TimePartition, TimeRangeForDataSync
+from app.celery.shared_types import TimePartition, TimeRangeForDataSync
 from config import config
 
-from dateutil.relativedelta import relativedelta
 
 class APIRoutes:
     LOGIN = "/auth/login"

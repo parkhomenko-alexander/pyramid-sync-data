@@ -1,16 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Type
-
-from app.db import db
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories import (
-    BuildingRepository,
-    DeviceRepository,
-    TagRepository,
-    DataRepository,
-)
+from app.db import db
+from app.repositories import (BuildingRepository, DataRepository,
+                              DeviceRepository, TagRepository)
 
 
 class AbstractUnitOfWork(ABC):

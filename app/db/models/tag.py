@@ -1,5 +1,5 @@
-from sqlalchemy import ForeignKey, PrimaryKeyConstraint
-from sqlalchemy.orm import Mapped, relationship, mapped_column
+from sqlalchemy.orm import Mapped
+
 from app.db import Base
 from app.db.base_model import IDMixin
 
