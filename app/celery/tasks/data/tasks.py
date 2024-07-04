@@ -119,7 +119,7 @@ async def sync_meter_points():
 
 @celery_app.task
 @async_to_sync
-async def sync_history_data_with_filters(tag_title: str = "", time_range: TimeRangeForDataSync = TimeRangeForDataSync(start = "", end = ""), time_partition: TimePartition = "30m", meter_points: list[str] = []):
+async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: dict = {"start": "", "end": ""}, time_partition: TimePartition = "30m", meter_points: list[str] = []):
     uow = SqlAlchemyUnitOfWork()
 
     device_service = DeviceService(uow)
@@ -139,6 +139,7 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range: TimeRa
             logger.error(f"Tag /{tag_title}/ not found")
             return 1
         
+        time_range: TimeRangeForDataSync = TimeRangeForDataSync(start=time_range_raw["start"], end=time_range_raw["end"])
         time_pairs = pyramid_api.prepare_time_range(time_range, time_partition)
         
         if isinstance(time_pairs, int):

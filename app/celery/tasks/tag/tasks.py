@@ -12,7 +12,7 @@ from app.utils.unit_of_work import SqlAlchemyUnitOfWork
 
 @celery_app.task
 @async_to_sync
-async def upload_tags():
+async def upload_tags(): 
     """
         Upload Tags
     """
