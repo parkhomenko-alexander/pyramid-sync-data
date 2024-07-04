@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Sequence, Set
 
 import bs4
@@ -205,3 +205,17 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
         logger.exception(f"Some error: {e}")
         return 1
     return 0
+
+@celery_app.task
+@async_to_sync
+async def schedule_sync_history_data(tag_title: str = "", hours_delta: int= 2, time_partition: TimePartition = "30m", meter_points: list[str] = []):
+    end_time = datetime.now().isoformat()
+    start_time = (datetime.now() - timedelta(hours_delta)).isoformat()
+    
+    await sync_history_data_with_filters(
+        tag_title,
+        {"start": start_time, "end": end_time},
+        time_partition,
+        meter_points
+    )
+

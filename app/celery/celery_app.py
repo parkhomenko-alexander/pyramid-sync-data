@@ -1,4 +1,5 @@
 from celery import Celery
+from celery.schedules import crontab
 
 from config import config
 
@@ -16,9 +17,9 @@ celery_app = Celery(
 )
 
 celery_app.conf.beat_schedule = {
-#    "sync_current_archive_issues": {
-#         "task": "tasks.issues_tasks.orchestrator.sync_issues_current_archive_chord_job",
-#         "schedule": crontab(minute="0", hour='*/3'),
-#         "kwargs": {"delay": 3, "service_external_ids": [3, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19], "archive_borders": {"start": 1, "end": 30}},
-#     },
+    "sync_history_data_every_2_hours": {
+        "task": "schedule_sync_history_data",
+        "schedule": crontab(minute="0", hour="*/2"),
+        "kwargs": {"tag_title": "EnergyActiveForward30Min", "hours_delta": config.ENERGY_SCHEDULE_TIME_DELTA, "time_partition": "30m", "meter_points": []}
+    }
 }
