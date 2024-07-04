@@ -8,7 +8,9 @@ celery_app = Celery(
     broker=config.CELERY_BROKER_URL,
     backend=config.CELERY_RESULT_BACKEND,
     include=[
-        "tasks.issues_tasks.callback",
+        "tasks.building.tasks",
+        "tasks.tag.tasks",
+        "tasks.data.tasks",
     ],
     broker_connection_retry=True,
     broker_connection_retry_on_startup=True,
