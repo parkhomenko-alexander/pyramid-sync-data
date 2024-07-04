@@ -25,7 +25,11 @@ class Config(BaseSettings):
     APPLICATION_LOGGER_FORMAT: str = ""
     APPLICATION_LOGGER_ROTATION: str = ""
     APPLICATION_LOGGER_COMPRESSION: str = ""
-    APPLICATION_LOGGER_SERIALIZE: bool = True 
+    APPLICATION_LOGGER_SERIALIZE: bool = True
+
+    POSTGRES_DB: str = ""
+    POSTGRES_PASSWORD: str = ""
+    POSTGRES_USER: str = ""
     
     model_config = SettingsConfigDict(env_file=DOTENV)
 
