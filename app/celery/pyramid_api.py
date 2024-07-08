@@ -249,8 +249,11 @@ class PyramidAPI():
                 logger.error(f"Incorrect time borders must be str in format '%Year-%month-%day %H:%M:%S'")
                 return 2
 
-            start_date = datetime.strptime(time_range.start, "%Y-%m-%dT%H:%M:%S")
-            end_date = datetime.strptime(time_range.end, "%Y-%m-%dT%H:%M:%S")
+            start_date = datetime.strptime(time_range.start, "%Y-%m-%dT%H:%M:%S.%f")
+            end_date = datetime.strptime(time_range.end, "%Y-%m-%dT%H:%M:%S.%f")
+
+            start_date = start_date.replace(microsecond=0)
+            end_date = end_date.replace(microsecond=0)
 
             if end_date < start_date:
                 logger.error(f"End date should be more start date")
