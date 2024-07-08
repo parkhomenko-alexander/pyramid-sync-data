@@ -117,8 +117,6 @@ async def sync_meter_points():
     return msg
 
 
-@celery_app.task
-@async_to_sync
 async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: dict = {"start": "", "end": ""}, time_partition: TimePartition = "30m", meter_points: list[str] = []):
     uow = SqlAlchemyUnitOfWork()
 
