@@ -117,7 +117,7 @@ async def sync_meter_points():
     return msg
 
 
-async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: dict = {"start": "", "end": ""}, time_partition: TimePartition = "30m", meter_points: list[str] = []):
+async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: dict = {"start": "", "end": ""}, time_partition: TimePartition = "30m", meter_points: list[int] = []):
     uow = SqlAlchemyUnitOfWork()
 
     device_service = DeviceService(uow)
@@ -130,7 +130,7 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
         if meter_points == []:
             devices: Sequence[DeviceGET] = await device_service.get_all()
         else:
-            devices: Sequence[DeviceGET] = await device_service.get_diveces_by_serial_numbers(meter_points)
+            devices: Sequence[DeviceGET] = await device_service.get_diveces_by_sync_ids(meter_points)
 
         tag: TagGET | None = await tag_service.get_filtered(title=tag_title)
         if tag is None:
@@ -206,7 +206,7 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
 
 @celery_app.task
 @async_to_sync
-async def schedule_sync_history_data(tag_title: str = "", days_delta: int = 0, hours_delta: int = 2, time_partition: TimePartition = "30m", meter_points: list[str] = []):
+async def schedule_sync_history_data(tag_title: str = "", days_delta: int = 0, hours_delta: int = 2, time_partition: TimePartition = "30m", meter_points: list[int] = []):
     end_time = datetime.now().isoformat()
     start_time = (datetime.now() - timedelta(days=days_delta, hours=hours_delta)).isoformat()
     

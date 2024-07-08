@@ -54,7 +54,7 @@ class DeviceService():
         return [DeviceGET.model_validate(d) for d in devices]
     
     @with_uow
-    async def get_diveces_by_serial_numbers(self, sr_numbers: list[str] = []) -> list[DeviceGET]:
-        devices: Sequence[Device] = await self.uow.device_repo.get_diveces_by_serial_numbers(sr_numbers)
+    async def get_diveces_by_sync_ids(self, sr_numbers: list[int] = []) -> list[DeviceGET]:
+        devices: Sequence[Device] = await self.uow.device_repo.get_diveces_by_sync_ids(sr_numbers)
         
         return [DeviceGET.model_validate(d) for d in devices]

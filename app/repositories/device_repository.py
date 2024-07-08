@@ -1,4 +1,5 @@
 from typing import Sequence
+
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,10 +34,10 @@ class DeviceRepository(SQLAlchemyRepository[Device]):
          
         return 0
     
-    async def get_diveces_by_serial_numbers(self, sr_numbers: list[str] = []) -> Sequence[Device]:
+    async def get_diveces_by_sync_ids(self, sr_numbers: list[int] = []) -> Sequence[Device]:
         stmt = (
             select(self.model).
-            where(self.model.serial_number.in_(sr_numbers))
+            where(self.model.sync_id.in_(sr_numbers))
         )
         
         res = await self.async_session.execute(stmt)
