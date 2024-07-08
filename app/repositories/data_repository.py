@@ -1,7 +1,7 @@
 
 from typing import Sequence
 
-from sqlalchemy import select
+from sqlalchemy import and_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.data import Data
@@ -14,21 +14,12 @@ class DataRepository(SQLAlchemyRepository[Data]):
         super().__init__(async_session, Data)
 
     async def get_existing_values(self, values: set[DataAddSheme]) -> Sequence[Data]:
-        created_at = []
-        tag_id = []
-        device_sync_id = []
-
-        for value in values:
-            created_at.append(value.created_at)
-            tag_id.append(value.tag_id)
-            device_sync_id.append(value.device_sync_id)
+        records = [(value.created_at, value.tag_id, value.device_sync_id) for value in values]
 
         stmt = (
             select(self.model).
             where(
-                self.model.created_at.in_(created_at) &
-                self.model.tag_id.in_(tag_id) &
-                self.model.device_sync_id.in_(device_sync_id)
+                tuple_(self.model.created_at, self.model.tag_id, self.model.device_sync_id).in_(records)
             )
         )
 

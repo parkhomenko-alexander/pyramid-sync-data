@@ -22,7 +22,7 @@ class DataAddSheme(DataExternalIdMinix):
     value: float = Field(validation_alias="value")
 
     def __hash__(self):
-        return hash((self.value, self.created_at, self.tag_id, self.device_sync_id))
+        return hash((self.created_at, self.tag_id, self.device_sync_id))
    
 
 
