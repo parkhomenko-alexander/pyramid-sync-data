@@ -207,8 +207,9 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
 @celery_app.task
 @async_to_sync
 async def schedule_sync_history_data(tag_title: str = "", days_delta: int = 0, hours_delta: int = 2, time_partition: TimePartition = "30m", meter_points: list[int] = []):
-    end_time = datetime.now().isoformat()
-    start_time = (datetime.now() - timedelta(days=days_delta, hours=hours_delta)).isoformat()
+    now = datetime.now().replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+    end_time = now.isoformat()
+    start_time = (now - timedelta(days=days_delta, hours=hours_delta)).isoformat()
     
     await sync_history_data_with_filters(
         tag_title,

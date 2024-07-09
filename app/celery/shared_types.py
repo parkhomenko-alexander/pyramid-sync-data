@@ -7,4 +7,4 @@ class TimeRangeForDataSync():
     start: str
     end: str
 
-TimePartition = Literal["5m", "30m", "1day", "1month"]
+TimePartition = Literal["5m", "30m", "2h", "1day", "1month"]
