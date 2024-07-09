@@ -183,6 +183,7 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
                     val = measured_value.find("Value")
                     created = measured_value.find("ValueDt")
                     if not (val and created):
+                        logger.info("Empty data for insertion")
                         continue
                     seriallized_values.add(DataAddSheme(
                         value=float(val.text),

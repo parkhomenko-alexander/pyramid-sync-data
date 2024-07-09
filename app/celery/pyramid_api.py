@@ -252,9 +252,6 @@ class PyramidAPI():
             start_date = datetime.strptime(time_range.start, "%Y-%m-%dT%H:%M:%S")
             end_date = datetime.strptime(time_range.end, "%Y-%m-%dT%H:%M:%S")
 
-            start_date = start_date.replace(microsecond=0)
-            end_date = end_date.replace(microsecond=0)
-
             if end_date < start_date:
                 logger.error(f"End date should be more start date")
                 return 2
