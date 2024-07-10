@@ -13,7 +13,7 @@ class Data(Base):
     __tablename__ = "data"
 
     value: Mapped[float]
-    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=False), primary_key=True)
+    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), primary_key=True)
     
     tag_id: Mapped[int] = mapped_column(ForeignKey("tags.id"), primary_key=True)
     device_sync_id: Mapped[int] = mapped_column(ForeignKey("devices.sync_id"), primary_key=True)
