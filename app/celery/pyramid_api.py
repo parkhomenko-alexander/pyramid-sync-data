@@ -285,6 +285,12 @@ class PyramidAPI():
                     current_end = end_date
                 time_pairs.append(TimeRangeForDataSync(start=current_start.isoformat(), end=current_end.isoformat()))
                 current_start = current_end + timedelta(seconds=1)
+            
+            if time_pairs[0]:
+                last_time_pair = time_pairs[-1]
+                last_end_date = datetime.strptime(last_time_pair.end, "%Y-%m-%dT%H:%M:%S") + timedelta(hours=3)
+                time_pairs[-1].end = last_end_date.isoformat()
+                
             return time_pairs
         except Exception as e:
             logger.exception(f"Some error: {e}")
