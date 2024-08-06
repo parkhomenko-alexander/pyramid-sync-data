@@ -20,6 +20,6 @@ celery_app.conf.beat_schedule = {
     "sync_history_data_every_2_hours": {
         "task": "tasks.data.tasks.schedule_sync_history_data",
         "schedule": crontab(minute="0", hour="*/2"),
-        "kwargs": {"tag_title": "EnergyActiveForward30Min", "hours_delta": config.ENERGY_SCHEDULE_TIME_DELTA, "time_partition": "2h", "meter_points": []}
+        "kwargs": {"tag_title": "EnergyActiveForward30Min", "time_partition": "2h"}
     }
 }
