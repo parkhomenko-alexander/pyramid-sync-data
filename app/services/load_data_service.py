@@ -19,6 +19,8 @@ class LoadDataFromFilesService():
         return date.replace(month=date.month+1, day=1, hour=23, minute=0, second=0) - timedelta(days=1)
     
     def parse_number(self, input_value):
+        if str(input_value) == "nan":
+                return 0
         if isinstance(input_value, int):
             return float(input_value)
         if isinstance(input_value, float):
@@ -28,8 +30,6 @@ class LoadDataFromFilesService():
             no_spaces = input_value.replace(' ', '')
             # Replace comma (decimal separator) with period
             standard_decimal = no_spaces.replace(',', '.')
-            if standard_decimal == "":
-                return 0
             # Convert to float
             return float(standard_decimal)
         else:
@@ -40,10 +40,6 @@ class LoadDataFromFilesService():
         try:
             year = 2024
 
-
-            project_path = os.getcwd()
-
-            print(project_path)
             file_path: str = config.APP_DATA_DIR + f"/{table_name}.xlsx"
             df = pd.read_excel(file_path)
 
@@ -74,8 +70,9 @@ class LoadDataFromFilesService():
                             await self.uow.water_repo.add(item)
                         if table_name == "warm":
                             await self.uow.warm_repo.add(item)
-                        print("")
+
             await self.uow.commit()
+            logger.info(f"{table_name} loaded")
             return 0
         except Exception as er:
             logger.error(er)
