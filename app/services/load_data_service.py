@@ -6,6 +6,7 @@ from loguru import logger
 
 from app.services.helper import with_uow
 from app.utils.unit_of_work import AbstractUnitOfWork
+from config import config
 
 
 class LoadDataFromFilesService():
@@ -39,12 +40,11 @@ class LoadDataFromFilesService():
         try:
             year = 2024
 
-            project_path = os.path.dirname(os.path.abspath(__file__))
 
             project_path = os.getcwd()
 
             print(project_path)
-            file_path: str = project_path + f"/data_tables/{table_name}.xlsx"
+            file_path: str = config.APP_DATA_DIR + f"/{table_name}.xlsx"
             df = pd.read_excel(file_path)
 
             for row in df.itertuples(index=False):
