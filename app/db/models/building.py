@@ -2,8 +2,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Mapped
 
-from app.db import Base
-from app.db.base_model import IDMixin
+from app.db.base_model import Base, IDMixin
 from app.db.mixins.external_id_mixin import ExternalIdMixin
 
 if TYPE_CHECKING:

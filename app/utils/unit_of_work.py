@@ -5,6 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import db
 from app.repositories import (BuildingRepository, DataRepository,
                               DeviceRepository, TagRepository)
+from app.repositories.electro_repository import ElectroRepository
+from app.repositories.warm_repository import WarmRepository
+from app.repositories.water_repository import WaterRepository
 
 
 class AbstractUnitOfWork(ABC):
@@ -12,6 +15,9 @@ class AbstractUnitOfWork(ABC):
     device_repo: DeviceRepository
     tag_repo: TagRepository
     data_repo: DataRepository
+    electro_repo: ElectroRepository
+    water_repo: WaterRepository
+    warm_repo: WarmRepository
    
     @abstractmethod
     def __init__(self, *args):
@@ -46,6 +52,9 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         self.device_repo = DeviceRepository(self.async_session)
         self.tag_repo = TagRepository(self.async_session)
         self.data_repo = DataRepository(self.async_session)
+        self.electro_repo = ElectroRepository(self.async_session)
+        self.water_repo = WaterRepository(self.async_session)
+        self.warm_repo = WarmRepository(self.async_session)
  
     async def __aexit__(self, *args):
         await self.rollback()

@@ -15,6 +15,7 @@ from app.schemas.tag_schema import TagGET
 from app.services.building_service import BuildingService
 from app.services.data_service import DataService
 from app.services.device_service import DeviceService
+from app.services.load_data_service import LoadDataFromFilesService
 from app.services.tag_service import TagService
 from app.utils.unit_of_work import SqlAlchemyUnitOfWork
 from config import config
@@ -222,3 +223,10 @@ async def schedule_sync_history_data(tag_title: str = "", time_range: tuple[str 
         meter_points
     )
 
+@celery_app.task
+@async_to_sync
+async def load_electro(file_name: str):
+    uow = SqlAlchemyUnitOfWork()
+    electro_service: LoadDataFromFilesService = LoadDataFromFilesService(uow)
+
+    await electro_service.insert_from_file(file_name)
