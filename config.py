@@ -15,6 +15,7 @@ class Config(BaseSettings):
     API_SOAP_USER: str = ""
     API_SOAP_PAS: str = ""
     API_CALLS_DELAY: float = 0
+    API_CALLS_DELAY_TIMEOUT_ERROR: float = 0
 
     DB_URI: str = ""
     DB_ECHO: bool = False

@@ -7,7 +7,7 @@ import bs4
 import urllib3
 from dateutil.relativedelta import relativedelta
 from loguru import logger
-from requests import Response, Session
+from requests import Response, Session, Timeout
 
 from app.celery.shared_types import TimePartition, TimeRangeForDataSync
 from config import config
@@ -70,6 +70,11 @@ class PyramidAPI():
                     logger.error(f"Some error: status code is {st_code}, text: {response.text}")
                     return None
                 flag = False
+            except Timeout as e:
+                logger.exception("Time out error. Pyramid may be shut down", e)
+                sleep(config.API_CALLS_DELAY_TIMEOUT_ERROR)
+                logger.exception("Next try")
+                return None
             except Exception as e:
                     logger.exception("Some error: ", e)
                     logger.exception(e)
@@ -223,6 +228,11 @@ class PyramidAPI():
                     logger.error(f"Some error: status code is {st_code}, text: {response.text}")
                     return None
                 flag = False
+            except Timeout as e:
+                logger.exception("Time out error. Pyramid may be shut down", e)
+                sleep(config.API_CALLS_DELAY_TIMEOUT_ERROR)
+                logger.exception("Next try")
+                return None
             except Exception as e:
                     logger.exception("Some error: ", e)
                     sleep(config.API_CALLS_DELAY)
