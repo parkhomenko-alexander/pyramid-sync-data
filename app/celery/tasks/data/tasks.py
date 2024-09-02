@@ -49,7 +49,9 @@ async def sync_meter_points():
         if soap_raw_reponse is not None:
             building_pyra_title_ext_id = await BuildingService.get_pyramid_title_external_id_mapping(uow)
             building_pyra_title_ext_id.update({
-                "медицинский центр": 128
+                "медицинский центр": 128,
+                "корпус bds": 121,
+                "корпус а (цод)": 120
             })
             meter_points: list = pyramid_api.get_meter_points_from_response(soap_raw_reponse)
 
@@ -70,7 +72,7 @@ async def sync_meter_points():
                 instanse = response_meter_data["instance"]
                 address = instanse.get("-13379", None)
                 
-                ignore_units = ["корпус bds", "мпуса", "корпус а (цод)"]
+                ignore_units = ["мпуса"]
 
                 if not address or "Приморский" not in address:
                     continue
