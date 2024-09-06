@@ -145,7 +145,6 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
         time_range: TimeRangeForDataSync = TimeRangeForDataSync(start=time_range_raw["start"], end=time_range_raw["end"])
         time_pairs = pyramid_api.prepare_time_range(time_range, time_partition)
         logger.info(time_pairs)
-        return None
         if isinstance(time_pairs, int):
             logger.error(f"Errors with time pairs")
             return 2
