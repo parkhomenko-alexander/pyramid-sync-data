@@ -150,7 +150,7 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
             return 2
 
         for d in devices:
-            logger.info(f"Starting data synchronization for {d.full_title.split()[0]} (guid: {d.guid})")
+            # logger.info(f"Starting data synchronization for {d.full_title.split()[0]} (guid: {d.guid})")
             for time_range in time_pairs:
                 data = pyramid_api.generate_soap_request_data(
                     SOAPActionsTypes.REQUEST_DATA_FOR_METER_POINT_WITH_TAG_AND_TIME,
@@ -210,9 +210,6 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
                 else:
                     logger.info("Empty data for updating")
                     continue
-
-                    
-            logger.info(f"Data synchronization for device {d.full_title.split()[0]} (guid: {d.guid}) finished")
     except Exception as e:
         logger.exception(f"Some error: {e}")
         return 1
