@@ -1,7 +1,7 @@
 
 from typing import Sequence
 
-from sqlalchemy import and_, select, tuple_
+from sqlalchemy import and_, select, tuple_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.data import Data
@@ -26,16 +26,16 @@ class DataRepository(SQLAlchemyRepository[Data]):
         res = await self.async_session.execute(stmt)
 
         return res.scalars().all()
-    
 
-    # async def bulk_update_by_external_ids(self, data: list[dict]) -> int:
-        # for item in data:
-        #     stmt = (
-        #         update(self.model).
-        #         where(self.model.guid == item["guid"]).
-        #         values(**item)
-        #     )
-        
-        #     await self.async_session.execute(stmt)
+
+    async def bulk_update_by_external_ids(self, data: list[dict]) -> int:
+        for item in data:
+            stmt = (
+                update(self.model).
+                where((self.model.created_at == item["created_at"]) & (self.model.tag_id == item["tag_id"]) & (self.model.device_sync_id == item["device_sync_id"])).
+                values(**item)
+            )
+            
+            await self.async_session.execute(stmt)
          
-        # return 0
+        return 0

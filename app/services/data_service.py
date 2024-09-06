@@ -1,5 +1,5 @@
 from loguru import logger
-from app.schemas.building_schema import BuildingPostSchema, BuildingWithPyramidTitle
+
 from app.schemas.data_schema import DataAddSheme
 from app.services.helper import with_uow
 from app.utils.unit_of_work import AbstractUnitOfWork
@@ -28,21 +28,21 @@ class DataService():
         logger.info(f"Data were inserted device_sync_id: {element.device_sync_id}, len: {len(elements)}")
         return 0
     
-    # @with_uow
-    # async def bulk_update(self, elements: list[BuildingWithPyramidTitle]):
-    #     """
-    #         Buildings update
-    #     """
-    #     elements_for_inserting = [e.model_dump() for e in elements]
-    #     try:
-    #         await self.uow.building_repo.bulk_update_by_external_ids(elements_for_inserting)
-    #         await self.uow.commit()
-    #     except Exception as e:
-    #         logger.error(f"Some error occurred: {e}")
-    #         return 1
-        
-    #     logger.info(f"Buildings between {elements[0].external_id}-{elements[-1].external_id} were updated")
-    #     return 0
+    @with_uow
+    async def bulk_update(self, elements: set[DataAddSheme]):
+        """
+            Buildings update
+        """
+        elements_for_inserting = [e.model_dump() for e in elements]
+        try:
+            await self.uow.data_repo.bulk_update_by_external_ids(elements_for_inserting)
+            await self.uow.commit()
+        except Exception as e:
+            logger.error(f"Some error occurred: {e}")
+            return 1
+        element  = next(iter(elements))
+        logger.info(f"Data were updated device_sync_id: {element.device_sync_id}, len: {len(elements)}")
+        return 0
     
     @with_uow
     async def get_existing_values(self, values: set[DataAddSheme]) -> set[DataAddSheme]:

@@ -78,12 +78,13 @@ async def sync_meter_points():
                     continue
                 
                 full_title = instanse.get("-2439", None)
+
                 serial_number = full_title.split(", ")[-1]
                 building_title = address.split(", ")[3][5:].lower()
                 
                 if building_title in ignore_units:
                     continue
-                
+                                   
                 is_meter_point_havent_building = -100
                 building_external_id = building_pyra_title_ext_id.get(building_title, is_meter_point_havent_building)
 
@@ -98,7 +99,7 @@ async def sync_meter_points():
                         building_external_id=building_external_id,
                     )
                 )
-            
+
             external_ids = [vru.guid for vru in based_vrus]
             existing_external_ids = await device_service.get_existing_external_ids(external_ids)
             elements_for_insert: list[DeviceFromApi] = []
@@ -143,7 +144,8 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
         
         time_range: TimeRangeForDataSync = TimeRangeForDataSync(start=time_range_raw["start"], end=time_range_raw["end"])
         time_pairs = pyramid_api.prepare_time_range(time_range, time_partition)
-        
+        logger.info(time_pairs)
+        return None
         if isinstance(time_pairs, int):
             logger.error(f"Errors with time pairs")
             return 2
@@ -198,11 +200,19 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
 
                 existing_values = await data_service.get_existing_values(seriallized_values)
                 values_for_inserting: set[DataAddSheme] = seriallized_values - existing_values
-                if not values_for_inserting:
-                    logger.info("Empty data for insertion")
+                values_for_updating: set[DataAddSheme] =  seriallized_values - values_for_inserting
+                if values_for_inserting:
+                    await data_service.bulk_insert(values_for_inserting)
+                else:
+                    logger.info("Empty data for inserting")
+
+                if values_for_updating:
+                    await data_service.bulk_update(values_for_updating)
+                else:
+                    logger.info("Empty data for updating")
                     continue
 
-                await data_service.bulk_insert(values_for_inserting)
+                    
             logger.info(f"Data synchronization for device {d.full_title.split()[0]} (guid: {d.guid}) finished")
     except Exception as e:
         logger.exception(f"Some error: {e}")

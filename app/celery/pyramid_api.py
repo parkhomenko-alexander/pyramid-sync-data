@@ -7,7 +7,7 @@ import bs4
 import urllib3
 from dateutil.relativedelta import relativedelta
 from loguru import logger
-from requests import Response, Session, Timeout
+from requests import ConnectionError, Response, Session, Timeout
 
 from app.celery.shared_types import TimePartition, TimeRangeForDataSync
 from config import config
@@ -75,6 +75,10 @@ class PyramidAPI():
                 sleep(config.API_CALLS_DELAY_TIMEOUT_ERROR)
                 logger.exception("Next try")
                 return None
+            except ConnectionError as e:
+                logger.exception("Connecttion error. Pyuramid is shutdown or vpn enabled. Pyramid may be shut down", e)
+                sleep(config.API_CALLS_DELAY_TIMEOUT_ERROR)
+                logger.exception("Next try")
             except Exception as e:
                     logger.exception("Some error: ", e)
                     logger.exception(e)
@@ -229,12 +233,17 @@ class PyramidAPI():
                     return None
                 flag = False
             except Timeout as e:
-                logger.exception("Time out error. Pyramid may be shut down", e)
+                logger.error("Time out error. Pyramid may be shut down", e)
                 sleep(config.API_CALLS_DELAY_TIMEOUT_ERROR)
-                logger.exception("Next try")
+                logger.error("Next try")
+                return None
+            except ConnectionError as e:
+                logger.error("Connecttion error. Pyramid is shutdown or vpn enabled. Pyramid may be shut down", e)
+                sleep(config.API_CALLS_DELAY_TIMEOUT_ERROR)
+                logger.error("Next try")
                 return None
             except Exception as e:
-                    logger.exception("Some error: ", e)
+                    logger.error("Some error: ", e)
                     sleep(config.API_CALLS_DELAY)
                     continue
         return response 

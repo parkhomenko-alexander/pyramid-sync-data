@@ -23,7 +23,6 @@ class DataAddSheme(DataExternalIdMinix):
 
     def __hash__(self):
         return hash((self.created_at, self.tag_id, self.device_sync_id))
-   
-
+    
 
 
