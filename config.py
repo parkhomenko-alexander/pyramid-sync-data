@@ -17,7 +17,7 @@ class Config(BaseSettings):
     API_CALLS_DELAY: float = 0
     API_CALLS_DELAY_TIMEOUT_ERROR: float = 0
     APP_DATA_DIR: str = ""
-
+ 
     DB_URI: str = ""
     DB_ECHO: bool = False
 
