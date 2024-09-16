@@ -33,7 +33,7 @@ class Config(BaseSettings):
     POSTGRES_USER: str = ""
 
     ENERGY_SCHEDULE_TIME_DELTA: int = 1
-    
+     
     model_config = SettingsConfigDict(env_file=DOTENV)
 
 config = Config()
