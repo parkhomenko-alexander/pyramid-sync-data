@@ -22,6 +22,6 @@ celery_app.conf.beat_schedule = {
     "sync_history_data_every_2_hours": {
         "task": "tasks.data.tasks.schedule_sync_history_data",
         "schedule": crontab(minute="*/40"),
-        "kwargs": {"tag_title": "EnergyActiveForward30Min", "time_partition": "1month", "time_range": [date.today().strftime("%Y-%m-%dT%H:%M:%S"), (date.today() + timedelta(days=10)).strftime("%Y-%m-%dT%H:%M:%S")]}
+        "kwargs": {"tag_title": "EnergyActiveForward30Min", "time_partition": "1month", "time_range": [(date.today() - timedelta(days=10)).strftime("%Y-%m-%dT%H:%M:%S"), (date.today() + timedelta(days=10)).strftime("%Y-%m-%dT%H:%M:%S")]}
     }
 }

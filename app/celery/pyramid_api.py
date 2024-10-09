@@ -286,7 +286,8 @@ class PyramidAPI():
                 case "1day":
                     partition_delta = timedelta(days=1)
                 case "1month":
-                    partition_delta = relativedelta(months=1)
+                    # partition_delta = relativedelta(months=1)
+                    return [TimeRangeForDataSync(start=start_date.isoformat(), end=end_date.isoformat())]
                 case _:
                     raise ValueError(f"Unsupported time partition: {time_partition}")
                 
