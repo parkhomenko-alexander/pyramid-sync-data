@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Sequence, Set
 
 import bs4
@@ -221,8 +221,8 @@ async def schedule_sync_history_data(tag_title: str = "", time_range: tuple[str 
     now = datetime.now().replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
     start_time, end_time = time_range
     if not (start_time and end_time):
-        end_time = now.isoformat()
-        start_time = (now - timedelta(hours=config.ENERGY_SCHEDULE_TIME_DELTA)).isoformat()
+        start_time = (date.today() - timedelta(days=2)).strftime("%Y-%m-%dT%H:%M:%S")
+        end_time = (date.today() + timedelta(days=5)).strftime("%Y-%m-%dT%H:%M:%S")
      
     await sync_history_data_with_filters(
         tag_title,
