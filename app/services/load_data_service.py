@@ -27,7 +27,8 @@ class LoadDataFromFilesService():
             return input_value
         elif isinstance(input_value, str):
             # Remove spaces (thousand separators)
-            no_spaces = input_value.replace(' ', '')
+
+            no_spaces = input_value.replace(' ', '').replace('\xa0', '')
             # Replace comma (decimal separator) with period
             standard_decimal = no_spaces.replace(',', '.')
             # Convert to float
@@ -38,42 +39,65 @@ class LoadDataFromFilesService():
     @with_uow
     async def insert_from_file(self, table_name: str) -> int:
         try:
-            year = 2024
+            base_year = 2024
 
             file_path: str = config.APP_DATA_DIR + f"/{table_name}.xlsx"
             df = pd.read_excel(file_path)
 
             for row in df.itertuples(index=False):
-                unit = row[0]
+                unit = row[0]  # First column is the unit name
+
+                # Iterate through the row in groups of 6 columns
                 for i in range(1, len(row), 6):
-                        month = (i - 1) // 6 + 1
-                        last_day_timestamp = self.last_day_of_month(datetime(year, month, 1))
+                    # Calculate the month based on the column index
+                    month = (i - 1) // 6 + 1
 
-                        group_of_six = row[i:i+6]
-                        item = {
-                            "electro_unit": unit,
-                            "created_at": last_day_timestamp,
+                    # Calculate the year based on the month
+                    year = base_year + (month - 1) // 12
 
-                            "plan": self.parse_number(group_of_six[0]),
-                            "fact": self.parse_number(group_of_six[2]),
+                    # Adjust the month to be within 1–12
+                    month = month % 12 or 12  # Handle month 12 (December)
 
-                            "plane_coast": self.parse_number(group_of_six[1]),
-                            "fact_coast": self.parse_number(group_of_six[3]),
+                    # Get the last day of the month for the calculated year
+                    last_day_timestamp = self.last_day_of_month(datetime(year, month, 1))
 
-                            "delta_values": self.parse_number(group_of_six[4]),
-                            "delta_coast": self.parse_number(group_of_six[5]),
-                        }
+                    # Extract the group of 6 columns
+                    group_of_six = row[i:i + 6]
 
-                        if table_name == "electro":
-                            await self.uow.electro_repo.add(item)
-                        if table_name == "water":
-                            await self.uow.water_repo.add(item)
-                        if table_name == "warm":
-                            await self.uow.warm_repo.add(item)
+                    # Skip if the group doesn't have exactly 6 columns
+                    if len(group_of_six) != 6:
+                        logger.warning(f"Skipping incomplete group for unit {unit}, month {month}, year {year}")
+                        continue
 
+                    # Create the item dictionary
+                    item = {
+                        "electro_unit": unit,
+                        "created_at": last_day_timestamp,
+
+                        "plan": self.parse_number(group_of_six[0]),
+                        "fact": self.parse_number(group_of_six[2]),
+
+                        "plane_coast": self.parse_number(group_of_six[1]),
+                        "fact_coast": self.parse_number(group_of_six[3]),
+
+                        "delta_values": self.parse_number(group_of_six[4]),
+                        "delta_coast": self.parse_number(group_of_six[5]),
+                    }
+                    print(item)
+
+                    # Insert the item into the appropriate table
+                    if table_name == "electro-new":
+                        await self.uow.electro_repo.add(item)
+                    elif table_name == "water-new":
+                        await self.uow.water_repo.add(item)
+                    elif table_name == "warm-new":
+                        await self.uow.warm_repo.add(item)
+
+            # Commit the transaction
             await self.uow.commit()
-            logger.info(f"{table_name} loaded")
+            logger.info(f"{table_name} loaded successfully")
             return 0
+
         except Exception as er:
-            logger.error(er)
+            logger.exception(f"Error loading {table_name}: {er}")
             return 1

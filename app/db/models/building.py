@@ -1,3 +1,4 @@
+import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Mapped
@@ -13,3 +14,4 @@ class Building(ExternalIdMixin, IDMixin, Base):
 
     title: Mapped[str]
     pyramid_title: Mapped[str | None]
+

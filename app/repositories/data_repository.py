@@ -39,3 +39,21 @@ class DataRepository(SQLAlchemyRepository[Data]):
             await self.async_session.execute(stmt)
          
         return 0
+    
+    async def get_device_data(self, device_sync_id: int, time_range: list[str], tag_id: int):
+        stmt = (
+            select(
+                self.model.value/1000000, self.model.created_at
+            ).
+            where(
+                and_(
+                    self.model.created_at.between(time_range[0], time_range[1]),
+                    self.model.device_sync_id==device_sync_id,
+                    self.model.tag_id == tag_id
+                )
+            )
+        )
+
+        res = await self.async_session.execute(stmt)
+
+        return res 

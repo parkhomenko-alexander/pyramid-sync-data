@@ -58,3 +58,12 @@ class DataService():
         #         if b.pyramid_title is not None:
         #             buildings_title_id_mapped[b.pyramid_title] = b.external_id
         #     return buildings_title_id_mapped
+
+    @with_uow
+    async def get_data_excel(self, devices: list[int], time_range: list[str], tag_id: int):
+        try:
+            for device in devices:
+                res = await self.uow.data_repo.get_device_data(device, time_range, tag_id)
+                logger.info(res)
+        except Exception as e:
+            logger.exception("")
