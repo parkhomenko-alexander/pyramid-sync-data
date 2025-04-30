@@ -39,7 +39,8 @@ class LoadDataFromFilesService():
     @with_uow
     async def insert_from_file(self, table_name: str) -> int:
         try:
-            base_year = 2024
+            base_year = datetime.now().year
+            start_month = 2
 
             file_path: str = config.APP_DATA_DIR + f"/{table_name}.xlsx"
             df = pd.read_excel(file_path)
@@ -50,13 +51,10 @@ class LoadDataFromFilesService():
                 # Iterate through the row in groups of 6 columns
                 for i in range(1, len(row), 6):
                     # Calculate the month based on the column index
-                    month = (i - 1) // 6 + 1
-
-                    # Calculate the year based on the month
-                    year = base_year + (month - 1) // 12
-
-                    # Adjust the month to be within 1–12
-                    month = month % 12 or 12  # Handle month 12 (December)
+                    
+                    total_month_offset = ((i - 1) // 6)
+                    month = (start_month + total_month_offset - 1) % 12 + 1
+                    year = base_year + ((start_month + total_month_offset - 1) // 12)
 
                     # Get the last day of the month for the calculated year
                     last_day_timestamp = self.last_day_of_month(datetime(year, month, 1))
@@ -86,11 +84,11 @@ class LoadDataFromFilesService():
                     print(item)
 
                     # Insert the item into the appropriate table
-                    if table_name == "electro-new":
+                    if "electro" in table_name:
                         await self.uow.electro_repo.add(item)
-                    elif table_name == "water-new":
+                    elif "water" in table_name:
                         await self.uow.water_repo.add(item)
-                    elif table_name == "warm-new":
+                    elif "warm" in table_name:
                         await self.uow.warm_repo.add(item)
 
             # Commit the transaction
