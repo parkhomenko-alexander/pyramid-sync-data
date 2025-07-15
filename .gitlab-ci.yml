@@ -23,7 +23,6 @@ variables:
     - echo "🛠 Пишем Docker config.json"
     - mkdir -p ~/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > ~/.docker/config.json
-
     - mkdir -p /etc/ssl/certs
     - cp "$REGISTRY_CERT" /etc/ssl/certs/custom-registry.crt
     - export SSL_CERT_DIR=/etc/ssl/certs

@@ -21,6 +21,7 @@ class Config(BaseSettings):
     DB_URI: str = ""
     DB_ECHO: bool = False
 
+    APPLICATION_PREFIX_BEHIND_PROXY: str
     APPLICATION_LOGGER_PATH: str = ""
     APPLICATION_LOGGER_FILENAME: str = ""
     APPLICATION_LOGGER_FORMAT: str = ""
@@ -36,4 +37,4 @@ class Config(BaseSettings):
       
     model_config = SettingsConfigDict(env_file=DOTENV)
 
-config = Config()
+config = Config() # type: ignore
