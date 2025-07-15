@@ -8,8 +8,8 @@ def create_app(config=config):
     app = FastAPI(
         title="Pyramid app",
         root_path=config.APPLICATION_PREFIX_BEHIND_PROXY,
-        docs_url="/api/docs",
-        openapi_url="/api/openapi.json"
+        docs_url="/docs",
+        openapi_url="/openapi.json"
     )
     
     app.include_router(root_router)
