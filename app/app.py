@@ -9,6 +9,7 @@ def create_app(config=config):
         title="Pyramid app",
         root_path=config.APPLICATION_PREFIX_BEHIND_PROXY,
         docs_url="/api/docs",
+        openapi_url="/api/openapi.json"
     )
     
     app.include_router(root_router)
