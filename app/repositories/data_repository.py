@@ -220,6 +220,7 @@ class DataRepository(SQLAlchemyRepository[Data]):
                 COALESCE(SUM(dt.value) FILTER (WHERE dbg.group_alias = 'Розетки'),0)/1000000 AS "Розетки",
                 COALESCE(SUM(dt.value) FILTER (WHERE dbg.group_alias = 'Освещение'),0)/1000000 AS "Освещение",
                 COALESCE(SUM(dt.value) FILTER (WHERE dbg.group_alias = 'Пожарка'),0)/1000000 AS "Пожарка",
+                COALESCE(SUM(dt.value) FILTER (WHERE dbg.group_alias = 'Столовая'),0)/1000000 AS "Столовая",
                 COALESCE(SUM(dt.value) FILTER (WHERE dbg.group_alias = 'Фитнес'),0)/1000000 AS "Фитнес",
                 COALESCE(SUM(dt.value) FILTER (WHERE dbg.group_alias = 'МедОборудование'),0)/1000000 AS "МедОборудование",
                 COALESCE(SUM(dt.value) FILTER (WHERE dbg.group_alias = 'Операционная'),0)/1000000 AS "Операционная"
