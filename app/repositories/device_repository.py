@@ -1,6 +1,6 @@
 from typing import Sequence
 
-from sqlalchemy import select, update
+from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.device import Device
@@ -42,4 +42,19 @@ class DeviceRepository(SQLAlchemyRepository[Device]):
         
         res = await self.async_session.execute(stmt)
 
+        return res.scalars().all()
+    
+    async def get_building_energy_devices(self) -> Sequence[str]:
+        stmt = text(
+            """
+                SELECT
+                    d.full_title
+                FROM
+                    devices d
+                WHERE d.full_title SIMILAR TO 'Полная (нагрузка|мощность) %'
+            """
+        )
+
+        res = await self.async_session.execute(stmt)
+        
         return res.scalars().all()

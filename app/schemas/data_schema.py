@@ -1,8 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+from typing import Annotated, Literal, Sequence
 
-from pydantic import Field
+from fastapi import Query
+from pydantic import BaseModel, Field
 
 from app.schemas.base_schema import GeneralSchema
+
 
 
 class DataExternalIdMinix(GeneralSchema):
@@ -25,4 +28,16 @@ class DataAddSheme(DataExternalIdMinix):
         return hash((self.created_at, self.tag_id, self.device_sync_id))
     
 
-
+class GetDataQueryParams(BaseModel):
+    start: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc) - timedelta(hours=10),
+        description="Start datetime in ISO format"
+    )
+    end: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="End datetime in ISO format"
+    )
+    type: Literal["b", "cg"] = Field(
+        "b",
+        description="Data type: 'b' or 'cg'"
+    )

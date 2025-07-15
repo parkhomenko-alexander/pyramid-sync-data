@@ -1,0 +1,79 @@
+stages:
+  - build
+  - deploy
+
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+
+
+variables:
+  IMAGE_NAME: parhom/pyramid-app
+  PROD_PATH: /home/docker/event-app
+
+
+.buildkit-template:
+  stage: build
+  tags: [cloud2-docker-runner]
+  image:
+    name: moby/buildkit:latest
+    entrypoint: [""]
+  interruptible: true
+  before_script:
+    - echo "🛠 Пишем Docker config.json"
+    - mkdir -p ~/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > ~/.docker/config.json
+
+    - mkdir -p /etc/ssl/certs
+    - cp "$REGISTRY_CERT" /etc/ssl/certs/custom-registry.crt
+    - export SSL_CERT_DIR=/etc/ssl/certs
+    - export SSL_CERT_FILE=/etc/ssl/certs/custom-registry.crt
+
+  script:
+    - echo "🚀 Сборка образа $IMAGE_NAME"
+    - buildctl-daemonless.sh build
+      --frontend dockerfile.v0
+      --local context=.
+      --local dockerfile=.
+      --output type=image,name=$CI_REGISTRY/$IMAGE_NAME:$TAG,push=true
+      --export-cache type=inline
+      --import-cache type=registry,ref=$CI_REGISTRY/$IMAGE_NAME:buildcache
+      --secret id=dockerconfig,src=$HOME/.docker/config.json
+
+build-prod:
+  extends: .buildkit-template
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+  variables:
+    TAG: latest
+
+build-dev:
+  extends: .buildkit-template
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+  variables:
+    TAG: dev
+
+
+
+deploy_prod:
+  stage: deploy
+  image: alpine:latest
+  tags: [docker]
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+  before_script:
+    - apk update && apk add --no-cache openssh-client 
+    - mkdir -p ~/.ssh
+    - chmod og= "$DATALENS_SSH_KEY"
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+    - echo "SSH setup complete"
+  script:
+    - |
+      ssh -T -i "$DATALENS_SSH_KEY" "$DATALENS_USER@$DATALENS_HOST_FOR_DOCKER_RUNNER" <<EOF
+        echo '$REGISTRY_ACCESS_TOKEN' | docker login $REGISTRY -u $REGISTRY_USER --password-stdin
+        cd $PROD_PATH
+        docker compose pull
+        docker compose up -d --force-recreate
+        docker restart nginx
+      EOF

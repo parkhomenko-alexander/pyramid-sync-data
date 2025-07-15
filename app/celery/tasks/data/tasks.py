@@ -180,7 +180,7 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
                     return 3
                 response_text = soap_reponse_data_with_values.content.decode("utf-8")
                 soup = bs4.BeautifulSoup(response_text, "lxml-xml")
-                measured_values: list[bs4.Tag] = soup.find_all("MeasuredValue")
+                measured_values: list[bs4.Tag] = soup.find_all("MeasuredValue")  # type: ignore
                 if measured_values == []:
                     continue
                 seriallized_values: Set[DataAddSheme] = set()

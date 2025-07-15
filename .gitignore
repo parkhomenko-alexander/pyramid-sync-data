@@ -91,6 +91,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.uv-cache
+
 
 # Spyder project settings
 .spyderproject
@@ -121,3 +123,6 @@ app/celery/celerybeat-schedule.dir
 
 
 reports/*
+
+
+.vscode/
