@@ -9,7 +9,7 @@ workflow:
 
 variables:
   IMAGE_NAME: parhom/pyramid-app
-  PROD_PATH: /home/docker/event-app
+  PROD_PATH: /home/docker/pyramid-sync-data
 
 
 .buildkit-template:
