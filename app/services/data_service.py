@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from typing import Sequence
 from loguru import logger
 
@@ -117,7 +118,7 @@ class DataService():
     
     @with_uow
     async def get_data_cg(self, params: GetDataQueryParams) -> list[dict]:
-        res = await self.uow.data_repo.get_data_cg(params.start, params.end)
+        res = await self.uow.data_repo.get_data_cg(self.round_to_nearest_30(params.start), self.round_to_nearest_30(params.end))
         parsed_res = []
         for d in res:
             parsed_res.append(
@@ -135,3 +136,11 @@ class DataService():
                 }
             )
         return parsed_res
+    
+    def round_to_nearest_30(self, dt: datetime) -> datetime:
+        discard = timedelta(
+            minutes=dt.minute % 30,
+            seconds=dt.second,
+            microseconds=dt.microsecond
+        )
+        return dt - discard
