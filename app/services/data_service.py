@@ -85,7 +85,7 @@ class DataService():
                 alias = device.strip().split()[-1]
             d[device] = alias
 
-        res = await self.uow.data_repo.get_data_buildings(params.start, params.end, d)
+        res = await self.uow.data_repo.get_data_buildings(self.round_to_nearest_30(params.start), self.round_to_nearest_30(params.end), d)
         parsed_res = []
         for d in res:
             parsed_res.append(
