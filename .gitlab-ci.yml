@@ -28,11 +28,12 @@ variables:
     # - export SSL_CERT_DIR=/etc/ssl/certs
     # - export SSL_CERT_FILE=/etc/ssl/certs/custom-registry.crt
     - ls -la /etc/gitlab-runner/certs
-    - cp /etc/gitlab-runner/certs/ca.crt /usr/local/share/ca-certificates/ca.crt
-    - update-ca-certificates
+    # - cp /etc/gitlab-runner/certs/ca.crt /usr/local/share/ca-certificates/ca.crt
+    # - update-ca-certificates
 
   script:
     - echo "🚀 Сборка образа $IMAGE_NAME"
+    - ls -la /etc/gitlab-runner/certs
     
     - buildctl-daemonless.sh build
       --frontend dockerfile.v0
