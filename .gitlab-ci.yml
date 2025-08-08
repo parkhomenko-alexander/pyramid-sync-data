@@ -27,6 +27,8 @@ variables:
     # - cp "$REGISTRY_CERT" /etc/ssl/certs/custom-registry.crt
     # - export SSL_CERT_DIR=/etc/ssl/certs
     # - export SSL_CERT_FILE=/etc/ssl/certs/custom-registry.crt
+    - ls -la /etc/gitlab-runner/certs
+    - cat /etc/gitlab-runner/certs/ca.crt
 
 
   script:
