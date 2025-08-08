@@ -24,6 +24,7 @@ variables:
     - mkdir -p ~/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$REGISTRY_ACCESS_KEY\"}}}" > ~/.docker/config.json
     # - cp /etc/gitlab-runner/certs/ca.crt /etc/ssl/certs/89.169.143.184.crt
+    - ls -la /etc/ssl/certs/
 
   script:
     - echo "🚀 Сборка образа $IMAGE_NAME"
