@@ -23,19 +23,10 @@ variables:
     - echo "🛠 Пишем Docker config.json"
     - mkdir -p ~/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$REGISTRY_ACCESS_KEY\"}}}" > ~/.docker/config.json
-    # - mkdir -p /etc/ssl/certs
-    # - cp "$REGISTRY_CERT" /etc/ssl/certs/custom-registry.crt
-    # - export SSL_CERT_DIR=/etc/ssl/certs
-    # - export SSL_CERT_FILE=/etc/ssl/certs/custom-registry.crt
-    - ls -la /etc/gitlab-runner/certs
-    # - mkdir mkdir /usr/share/ca-certificates/
     - cp /etc/gitlab-runner/certs/ca.crt /etc/ssl/certs/89.169.143.184.crt
-    # - update-ca-certificates
 
   script:
     - echo "🚀 Сборка образа $IMAGE_NAME"
-    - ls -la /etc/gitlab-runner/certs
-    
     - buildctl-daemonless.sh build
       --frontend dockerfile.v0
       --local context=.
