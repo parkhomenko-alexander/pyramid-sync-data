@@ -28,8 +28,8 @@ variables:
     # - export SSL_CERT_DIR=/etc/ssl/certs
     # - export SSL_CERT_FILE=/etc/ssl/certs/custom-registry.crt
     - ls -la /etc/gitlab-runner/certs
-    - cat /etc/gitlab-runner/certs/ca.crt
-
+    - cp /etc/gitlab-runner/certs/ca.crt /usr/local/share/ca-certificates/ca.crt
+    - update-ca-certificates
 
   script:
     - echo "🚀 Сборка образа $IMAGE_NAME"
