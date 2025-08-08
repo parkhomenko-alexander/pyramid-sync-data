@@ -28,7 +28,8 @@ variables:
     # - export SSL_CERT_DIR=/etc/ssl/certs
     # - export SSL_CERT_FILE=/etc/ssl/certs/custom-registry.crt
     - ls -la /etc/gitlab-runner/certs
-    # - cp /etc/gitlab-runner/certs/ca.crt /usr/local/share/ca-certificates/ca.crt
+    - mkdir mkdir /usr/share/ca-certificates/
+    - cp /etc/gitlab-runner/certs/ca.crt /usr/share/ca-certificates/89.169.143.184.crt
     # - update-ca-certificates
 
   script:
