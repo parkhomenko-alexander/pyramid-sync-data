@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta
+from logging import raiseExceptions
 from typing import Sequence, Set
 
 import bs4
@@ -120,6 +121,121 @@ async def sync_meter_points():
     msg = "Devices were synchronized"
     logger.info(msg) 
     return msg
+
+
+@celery_app.task
+@async_to_sync
+async def sync_pipe_entities():
+    """
+        Sync metrer points
+    """
+
+    buildings_map = {
+        "Гостиничный корпус №1": 96,
+        "Гостиничный корпус №3": 110,
+        "Гостиничный корпус №4": 111,
+        "Гостиничный корпус №5": 112,
+        "Гостиничный корпус №6.2": 113,
+        "Гостиничный корпус №7.2": 114,
+        "Гостиничный корпус №8.1": 115,
+        "Учебный корпус S1 (ФОК С)": 141,
+        "Учебный корпус №12 (C,E)": 122,   # C=122, E=124
+        "Учебный корпус №20 (B,D,S)": 121,  # B=121, D=123, S=140
+        "Учебный корпус №22 (G)": 126
+    }
+
+    uow = SqlAlchemyUnitOfWork()
+
+    pyramid_api: PyramidAPI = PyramidAPI()
+    pyramid_api.auth()
+    
+    device_service: DeviceService = DeviceService(uow)
+
+    soap_request_entities_data: str = pyramid_api.generate_soap_request_data(SOAPActionsTypes.REQUEST_METERPOINTS_PIPES, source="P25")
+    soap_raw_reponse = pyramid_api.soap_post("/SlaveEntities", soap_request_entities_data)
+    if soap_raw_reponse and soap_raw_reponse.status_code != 500:
+        request_id = pyramid_api.get_request_id_from_response(soap_raw_reponse)
+    else:
+        logger.error("Some error, request id not defined")
+        return
+    
+    soap_request_entities_data: str = pyramid_api.generate_soap_request_data(SOAPActionsTypes.FETCH_METERPOINTS, source="P25", request_id=request_id)
+    soap_raw_reponse = pyramid_api.soap_post("/SlaveEntities", soap_request_entities_data)
+    
+
+    tv7_info_response = pyramid_api.post(
+        APIRoutes.GET_INSTANSES_INFO,
+        pyramid_api.prepare_data_for_pipe_post_request(),
+        # {"Content-Type": "application/json"}
+    )
+    if not tv7_info_response:
+        logger.error("Some error, request id not defined")
+        return 
+    
+    tv7_api_instanses: list = tv7_info_response.json()["data"]
+    try:
+        if soap_raw_reponse is None:
+            raise ValueError("No response data")
+
+        meter_points: list = pyramid_api.get_pipes_from_response(soap_raw_reponse)
+
+        based_vrus: list[DeviceFromApi] = []
+        for meter_point in meter_points:
+            meter = meter_point.find("Meters")
+            if not meter.contents:
+                continue
+            sync_id = meter.find("PipePointMeter").find("SyncId").text
+            guid = meter_point.find("PipePoint").find("Id").text
+
+            api_pipe_inst = next(
+                (api_instanse for api_instanse in tv7_api_instanses if str(api_instanse["id"]) == sync_id),
+                None
+            )
+
+            if not api_pipe_inst:
+                continue
+            
+            serial_number = "№" + api_pipe_inst.get("-1494")
+            full_title = api_pipe_inst.get("caption")
+            api_pipe_struct_with_name = api_pipe_inst.get("-32284")
+            api_pipe_title = api_pipe_struct_with_name.get("caption").split("\\")[0]
+            building_external_id = buildings_map.get(api_pipe_title, None)
+
+            if building_external_id is None:
+                logger.error(f"Some exception: not found building for meter: {guid}")
+                raise ValueError("Not found building")
+
+            based_vrus.append(DeviceFromApi(
+                    full_title=full_title,
+                    guid=guid,
+                    sync_id=sync_id,
+                    serial_number=serial_number,
+                    building_external_id=building_external_id,
+                )
+            )
+
+        external_ids = [vru.guid for vru in based_vrus]
+        existing_external_ids = await device_service.get_existing_external_ids(external_ids)
+        elements_for_insert: list[DeviceFromApi] = []
+        element_for_update: list[DeviceFromApi] = []
+        for vru in based_vrus:
+            if vru.guid in existing_external_ids:
+                element_for_update.append(vru)
+            else:
+                elements_for_insert.append(vru)
+
+        if elements_for_insert != []:
+            await device_service.bulk_insert(elements_for_insert)
+        if element_for_update != []:
+            await device_service.bulk_update(element_for_update)
+    except Exception as e:
+        logger.exception(f"Some exception: {e}")
+        return
+    
+    msg = "Devices were synchronized"
+    logger.info(msg) 
+    return msg
+
 
 
 async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: dict = {"start": "", "end": ""}, time_partition: TimePartition = "30m", meter_points: list[int] = []):

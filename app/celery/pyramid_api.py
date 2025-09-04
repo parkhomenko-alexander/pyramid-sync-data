@@ -16,12 +16,14 @@ from config import config
 class APIRoutes:
     LOGIN = "/auth/login"
     GET_INSTANSE_INFO = "/rdinstance/getinstanceinfo/?instanceId="
+    GET_INSTANSES_INFO = "/rdinstance/getinstances/"
 
 SOAPApiRoutes = Literal["/SlaveEntities", "/SlaveArchives"]
 
 
 class SOAPActionsTypes(Enum):
     REQUEST_METERPOINTS = "request_meterpoints"
+    REQUEST_METERPOINTS_PIPES = "request_meterpoints_pipes"
     FETCH_METERPOINTS = "fetch_meterpoints"
     REQUEST_DATA_FOR_METER_POINT_WITH_TAG_AND_TIME = "request_data_with_filter"
     FETCH_DATA_FOR_METER_POINT_WITH_TAG_AND_TIME = "fetch_data_with_filter"
@@ -48,7 +50,7 @@ class PyramidAPI():
         self.soap_pas = soap_pas
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-            "Authorization": ""
+            "Authorization": "",
         }
 
        
@@ -58,9 +60,10 @@ class PyramidAPI():
     def get(self, route: str, params: dict[str, Any] = {}) -> Response | None:
         flag = True
         response = None
+
         while flag:
             try:
-                response = self.session.get(self.base_url + route, params=params, timeout=self.timeout, headers=self.headers)
+                response = self.session.get(self.base_url + route, params=params, timeout=self.timeout, headers=self.headers, verify=False)
                 st_code = response.status_code 
                 
                 if st_code == 401:
@@ -85,7 +88,39 @@ class PyramidAPI():
                     sleep(config.API_CALLS_DELAY)
                     continue
         return response    
+
+    def post(self, route: str, json: dict[str, Any] = {}, headers: dict[str, Any] = {}) -> Response | None:        
+        flag = True
+        response = None
+        req_headers = self.headers | headers
+        while flag:
+            try:
+                response = self.session.post(self.base_url + route, json=json, timeout=self.timeout, headers=req_headers, verify=False)
+                st_code = response.status_code
                 
+                if st_code == 401:
+                    logger.error(f"Some error: status code is {st_code}, text: {response.text}")
+                    continue
+                elif st_code == 404:
+                    logger.error(f"Some error: status code is {st_code}, text: {response.text}")
+                    return None
+                flag = False
+            except Timeout as e:
+                logger.exception("Time out error. Pyramid may be shut down", e)
+                sleep(config.API_CALLS_DELAY_TIMEOUT_ERROR)
+                logger.exception("Next try")
+                return None
+            except ConnectionError as e:
+                logger.exception("Connecttion error. Pyuramid is shutdown or vpn enabled. Pyramid may be shut down", e)
+                sleep(config.API_CALLS_DELAY_TIMEOUT_ERROR)
+                logger.exception("Next try")
+            except Exception as e:
+                    logger.exception("Some error: ", e)
+                    logger.exception(e)
+                    sleep(config.API_CALLS_DELAY)
+                    continue
+        return response
+    
     def auth(self) -> int:
         flag = True
         while flag:
@@ -185,6 +220,27 @@ class PyramidAPI():
                 </soapenv:Body>
             """
 
+        if type == SOAPActionsTypes.REQUEST_METERPOINTS_PIPES:
+            body = f"""
+                <soapenv:Body>
+                    <ns:RequestEntities>
+                    <ns:message>
+                        <ns:Header>
+                            <ns:Source>{source}</ns:Source>
+                        </ns:Header>
+                        <ns:EntityTypeKind>MeterPoint</ns:EntityTypeKind>
+                        <ns:Filters>
+                            <ns:Filter xsi:type="ns:MeterPointFilter">
+                                <ns:IncludePipes>true</ns:IncludePipes>
+                                <ns:IncludeMeterPoints>false</ns:IncludeMeterPoints>
+                                <ns:IncludePipeGroups>false</ns:IncludePipeGroups>
+                            </ns:Filter>
+                        </ns:Filters>
+                    </ns:message>
+                    </ns:RequestEntities>
+                </soapenv:Body>
+            """
+
         if type == SOAPActionsTypes.FETCH_DATA_FOR_METER_POINT_WITH_TAG_AND_TIME:
             request_id = kwargs["request_id"]
 
@@ -200,11 +256,14 @@ class PyramidAPI():
                     </ns:FetchValuesAndEvents>
                 </soapenv:Body>
             """
+            
 
         main_part = f"""
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
                 xmlns:ns="http://www.sicon.ru/Integration/Pyramid/2019/08"
-                xmlns:arr="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+                xmlns:arr="http://schemas.microsoft.com/2003/10/Serialization/Arrays"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            >
             <soapenv:Header />
                 {body}
             </soapenv:Envelope>
@@ -259,6 +318,23 @@ class PyramidAPI():
         response_text = response.content.decode("utf-8")
         soup = bs4.BeautifulSoup(response_text, "lxml-xml")
         meter_points = soup.find_all("MeterPoint")
+
+        return meter_points
+    
+    def prepare_data_for_pipe_post_request(self) -> dict:
+        return {
+            "classId": -30331,
+            "userCustomized": False,
+            "options": {
+                "take": "50",
+                "sort": "[{\"selector\":\"id\",\"desc\":false}]"
+            }
+        }
+
+    def get_pipes_from_response(self, response: Response) -> list:
+        response_text = response.content.decode("utf-8")
+        soup = bs4.BeautifulSoup(response_text, "lxml-xml")
+        meter_points = soup.find_all("RelationEntities", attrs={"i:type": "PipeRelationEntities"})
 
         return meter_points
     
