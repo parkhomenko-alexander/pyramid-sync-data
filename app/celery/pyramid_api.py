@@ -57,102 +57,88 @@ class PyramidAPI():
         self.timeout = timeout
         urllib3.disable_warnings()
         
-    def get(self, route: str, params: dict[str, Any] = {}) -> Response | None:
-        flag = True
+    def get(self, route: str, params: dict[str, Any] | None = None) -> Response | None:
+        params = params or {}
         response = None
 
-        while flag:
-            try:
-                response = self.session.get(self.base_url + route, params=params, timeout=self.timeout, headers=self.headers, verify=False)
-                st_code = response.status_code 
-                
-                if st_code == 401:
-                    logger.error(f"Some error: status code is {st_code}, text: {response.text}")
-                    continue
-                elif st_code == 404:
-                    logger.error(f"Some error: status code is {st_code}, text: {response.text}")
-                    return None
-                flag = False
-            except Timeout as e:
-                logger.exception("Time out error. Pyramid may be shut down", e)
-                sleep(config.API_CALLS_DELAY_TIMEOUT_ERROR)
-                logger.exception("Next try")
+        try:
+            response = self.session.get(self.base_url + route, params=params, timeout=self.timeout, headers=self.headers, verify=False)
+            st_code = response.status_code 
+            
+            if st_code == 401:
+                logger.error(f"Some error: status code is {st_code}, text: {response.text}")
+            elif st_code == 404:
+                logger.error(f"Some error: status code is {st_code}, text: {response.text}")
                 return None
-            except ConnectionError as e:
-                logger.exception("Connecttion error. Pyuramid is shutdown or vpn enabled. Pyramid may be shut down", e)
-                sleep(config.API_CALLS_DELAY_TIMEOUT_ERROR)
-                logger.exception("Next try")
-            except Exception as e:
-                    logger.exception("Some error: ", e)
-                    logger.exception(e)
-                    sleep(config.API_CALLS_DELAY)
-                    continue
+        except Timeout as e:
+            logger.exception(f"Time out error. Pyramid may be shut down {e}")
+            return None
+        except ConnectionError as e:
+            logger.exception("Connecttion error. Pyuramid is shutdown or vpn enabled. Pyramid may be shut down {e}")
+            sleep(config.API_CALLS_DELAY_TIMEOUT_ERROR)
+        except Exception as e:
+                logger.exception("Some error: {e}")
         return response    
 
-    def post(self, route: str, json: dict[str, Any] = {}, headers: dict[str, Any] = {}) -> Response | None:        
-        flag = True
+    def post(
+        self,
+        route: str,
+        json: dict[str, Any] | None = None,
+        headers: dict[str, Any] | None = None
+    ) -> Response | None:        
         response = None
+        json = json or {}
+        headers = headers or {}
         req_headers = self.headers | headers
-        while flag:
-            try:
-                response = self.session.post(self.base_url + route, json=json, timeout=self.timeout, headers=req_headers, verify=False)
-                st_code = response.status_code
-                
-                if st_code == 401:
-                    logger.error(f"Some error: status code is {st_code}, text: {response.text}")
-                    continue
-                elif st_code == 404:
-                    logger.error(f"Some error: status code is {st_code}, text: {response.text}")
-                    return None
-                flag = False
-            except Timeout as e:
-                logger.exception("Time out error. Pyramid may be shut down", e)
-                sleep(config.API_CALLS_DELAY_TIMEOUT_ERROR)
-                logger.exception("Next try")
+        try:
+            response = self.session.post(self.base_url + route, json=json, timeout=self.timeout, headers=req_headers, verify=False)
+            st_code = response.status_code
+            
+            if st_code == 401:
+                logger.error(f"Some error: status code is {st_code}, text: {response.text}")
+            
+            elif st_code == 404:
+                logger.error(f"Some error: status code is {st_code}, text: {response.text}")
                 return None
-            except ConnectionError as e:
-                logger.exception("Connecttion error. Pyuramid is shutdown or vpn enabled. Pyramid may be shut down", e)
-                sleep(config.API_CALLS_DELAY_TIMEOUT_ERROR)
-                logger.exception("Next try")
-            except Exception as e:
-                    logger.exception("Some error: ", e)
-                    logger.exception(e)
-                    sleep(config.API_CALLS_DELAY)
-                    continue
+        except Timeout as e:
+            logger.exception("Time out error. Pyramid may be shut down", e)
+            return None
+        except ConnectionError as e:
+            logger.exception("Connecttion error. Pyuramid is shutdown or vpn enabled. Pyramid may be shut down", e)
+        except Exception as e:
+                logger.exception("Some error: ", e)
+                
         return response
     
     def auth(self) -> int:
-        flag = True
-        while flag:
-            try:
-                auth_response = self.session.post(
-                    url=self.base_url+APIRoutes.LOGIN,
-                    headers=self.headers,
-                    json={
-                        "username": self.api_user,
-                        "password": self.api_pas,
-                        "tokens": None,
-                    },
-                    verify=False,
-                    timeout=self.timeout
-                )
+        try:
+            auth_response = self.session.post(
+                url=self.base_url+APIRoutes.LOGIN,
+                headers=self.headers,
+                json={
+                    "username": self.api_user,
+                    "password": self.api_pas,
+                    "tokens": None,
+                },
+                verify=False,
+                timeout=self.timeout
+            )
 
-                st_code = auth_response.status_code
+            st_code = auth_response.status_code
 
-                if st_code != 200:
-                    logger.info(f"Status code of authorization is {st_code}")
-                    return 1
-                else:
-                    flag = False
-                    auth_response_json = auth_response.json()
-                    self.headers.update({
-                        "Authorization":f"Bearer {auth_response_json['tokens']['accessToken']}"
-                    })
+            if st_code != 200:
+                logger.info(f"Status code of authorization is {st_code}")
+                return 1
+            else:
+                auth_response_json = auth_response.json()
+                self.headers.update({
+                    "Authorization":f"Bearer {auth_response_json['tokens']['accessToken']}"
+                })
 
-            except Exception as e:
-                print("Some error: ", e)
-                sleep(config.API_CALLS_DELAY)
-                continue
+        except Exception as e:
+            print("Some error: ", e)
+            sleep(config.API_CALLS_DELAY)
+
         return 0
 
     def generate_soap_request_data(self, type: SOAPActionsTypes, **kwargs) -> str:

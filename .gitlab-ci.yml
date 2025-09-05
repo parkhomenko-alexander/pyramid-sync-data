@@ -20,12 +20,12 @@ variables:
     entrypoint: [""]
   interruptible: true
   before_script:
-    - echo "🛠 Пишем Docker config.json"
+    - echo "🛠 set up docker"
     - mkdir -p ~/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$REGISTRY_ACCESS_KEY\"}}}" > ~/.docker/config.json
 
   script:
-    - echo "🚀 Сборка образа $IMAGE_NAME"
+    - echo "🚀 build image $IMAGE_NAME"
     - buildctl-daemonless.sh build
       --frontend dockerfile.v0
       --local context=.
