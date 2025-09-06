@@ -306,9 +306,14 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
                     if not (val and created):
                         logger.info("Empty data for insertion")
                         continue
+                    dt = datetime.fromisoformat(created.text.strip())
+                    dt = dt.replace(microsecond=0)
+
                     seriallized_values.add(DataAddSheme(
                         value=float(val.text),
-                        created_at=datetime.strptime(created.text, "%Y-%m-%dT%H:%M:%S"),
+                        # created_at=datetime.strptime(created.text, "%Y-%m-%dT%H:%M:%S"),
+                        # created_at=datetime.strptime(created.text, "%Y-%m-%dT%H:%M:%S"),
+                        created_at=dt,
                         tag_id=tag.id,
                         device_sync_id=d.sync_id
                     ))
@@ -334,12 +339,17 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
 @celery_app.task
 @async_to_sync
 async def schedule_sync_history_data(tag_title: str = "", time_range: tuple[str | None, str| None] = (None, None), time_partition: TimePartition = "30m", meter_points: list[int] = []):
-    now = datetime.now().replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
     start_time, end_time = time_range
+    now = datetime.now()
+    
     if not (start_time and end_time):
         start_time = (date.today() - timedelta(days=2)).strftime("%Y-%m-%dT%H:%M:%S")
         end_time = (date.today() + timedelta(days=5)).strftime("%Y-%m-%dT%H:%M:%S")
-     
+    
+    if tag_title == "ActivePowerSummary":
+        end_time = now.strftime("%Y-%m-%dT%H:%M:%S")
+        start_time = (now - timedelta(minutes=3)).strftime("%Y-%m-%dT%H:%M:%S")
+
     await sync_history_data_with_filters(
         tag_title,
         {"start": start_time, "end": end_time},

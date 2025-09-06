@@ -16,4 +16,4 @@ class Data(Base):
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=False), primary_key=True)
     
     tag_id: Mapped[int] = mapped_column(ForeignKey("tags.id"), primary_key=True)
-    device_sync_id: Mapped[int] = mapped_column(ForeignKey("devices.sync_id"), primary_key=True)
+    device_sync_id: Mapped[int] = mapped_column(ForeignKey("devices.sync_id"), primary_key=True) 

@@ -36,4 +36,9 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(hour=17, minute=0),
         "kwargs": {"tag_title": "TemperatureMinPerDay", "time_partition": "1month",}
     },
+    "sync_power_from_tags": {
+        "task": "app.celery.tasks.data.tasks.schedule_sync_history_data",
+        "schedule": crontab(minute="*/3"),
+        "kwargs": {"tag_title": "ActivePowerSummary", "time_partition": "5m",}
+    },
 }
