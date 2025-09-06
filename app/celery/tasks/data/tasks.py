@@ -265,8 +265,8 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
             logger.error(f"Errors with time pairs")
             return 2
 
-        for d in devices:
-            # logger.info(f"Starting data synchronization for {d.full_title.split()[0]} (guid: {d.guid})")
+
+        for i, d in enumerate(devices):
             for time_range in time_pairs:
                 data = pyramid_api.generate_soap_request_data(
                     SOAPActionsTypes.REQUEST_DATA_FOR_METER_POINT_WITH_TAG_AND_TIME,
@@ -321,15 +321,13 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
                 existing_values = await data_service.get_existing_values(seriallized_values)
                 values_for_inserting: set[DataAddSheme] = seriallized_values - existing_values
                 values_for_updating: set[DataAddSheme] =  seriallized_values - values_for_inserting
+                if i % 100 == 0:
+                    logger.info(f"insert_len = {len(values_for_inserting)}, update_len = {len(values_for_updating)}, ind = {i}")
                 if values_for_inserting:
                     await data_service.bulk_insert(values_for_inserting)
-                else:
-                    logger.info("Empty data for inserting")
-
                 if values_for_updating:
                     await data_service.bulk_update(values_for_updating)
                 else:
-                    logger.info("Empty data for updating")
                     continue
     except Exception as e:
         logger.exception(f"Some error: {e}")
@@ -341,6 +339,7 @@ async def sync_history_data_with_filters(tag_title: str = "", time_range_raw: di
 async def schedule_sync_history_data(tag_title: str = "", time_range: tuple[str | None, str| None] = (None, None), time_partition: TimePartition = "30m", meter_points: list[int] = []):
     start_time, end_time = time_range
     now = datetime.now()
+    logger.info(f"Sync data for tag: {tag_title}")
     
     if not (start_time and end_time):
         start_time = (date.today() - timedelta(days=2)).strftime("%Y-%m-%dT%H:%M:%S")
@@ -364,3 +363,4 @@ async def load_electro(file_name: str):
     electro_service: LoadDataFromFilesService = LoadDataFromFilesService(uow)
 
     await electro_service.insert_from_file(file_name)
+ 

@@ -27,7 +27,6 @@ class DataService():
             logger.error(f"Some error occurred: {e}")
             return 1
         element  = next(iter(elements))
-        logger.info(f"Data were inserted device_sync_id: {element.device_sync_id}, len: {len(elements)}")
         return 0
     
     @with_uow
@@ -43,7 +42,6 @@ class DataService():
             logger.error(f"Some error occurred: {e}")
             return 1
         element  = next(iter(elements))
-        logger.info(f"Data were updated device_sync_id: {element.device_sync_id}, len: {len(elements)}")
         return 0
     
     @with_uow

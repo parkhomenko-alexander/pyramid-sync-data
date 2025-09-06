@@ -1,7 +1,7 @@
 uv run celery -A app.celery.celery_app:celery_app beat --loglevel=info 
 uv run celery -A app.celery.celery_app:celery_app worker --loglevel=info --pool=solo
 
-celery -A celery_app call tasks.tag.tasks.upload_tags 
+uv run celery -A app.celery.celery_app call app.celery.tasks.tag.tasks.upload_tags 
 celery -A celery_app call tasks.data.tasks.sync_history_data_with_filters
 celery -A celery_app call tasks.data.tasks.schedule_sync_history_data --kwargs='{"tag_title": "EnergyActiveForward30Min","hours_delta": 2, "time_partition": " 30m", "meter_points": []}'
 celery -A celery_app call tasks.data.tasks.schedule_sync_history_data --kwargs='{"tag_title": "EnergyActiveForward30Min", "days_delta": 10, "hours_delta": 0, "time_partition": "1month", "meter_points": [3569]}'
