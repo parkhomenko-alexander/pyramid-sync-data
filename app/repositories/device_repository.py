@@ -1,6 +1,6 @@
-from typing import Sequence
+from typing import Mapping, Sequence
 
-from sqlalchemy import select, text, update
+from sqlalchemy import VARCHAR, bindparam, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.device import Device
@@ -34,7 +34,7 @@ class DeviceRepository(SQLAlchemyRepository[Device]):
          
         return 0
     
-    async def get_diveces_by_sync_ids(self, sr_numbers: list[int] = []) -> Sequence[Device]:
+    async def get_diveces_by_sync_ids(self, sr_numbers: Sequence[int] = []) -> Sequence[Device]:
         stmt = (
             select(self.model).
             where(self.model.sync_id.in_(sr_numbers))
@@ -57,4 +57,20 @@ class DeviceRepository(SQLAlchemyRepository[Device]):
 
         res = await self.async_session.execute(stmt)
         
+        return res.scalars().all()
+    
+    async def get_by_regexp(self, reg_exp: str) -> Sequence[int]:
+        stmt = text(
+            """
+                SELECT 
+                    d.sync_id
+                FROM
+                    devices d
+                WHERE d.full_title ~* :reg_exp
+            """
+        ).bindparams(
+            bindparam("reg_exp", value=reg_exp, type_=VARCHAR),
+        )
+
+        res = await self.async_session.execute(stmt)
         return res.scalars().all()

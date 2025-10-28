@@ -318,12 +318,20 @@ class PyramidAPI():
         }
 
     def get_pipes_from_response(self, response: Response) -> list:
+        # response_text = response.content.decode("utf-8")
+        # soup = bs4.BeautifulSoup(response_text, "lxml-xml")
+        # meter_points = soup.find_all("RelationEntities", attrs={"i:type": "PipeRelationEntities"})
+
+        # return meter_points
+        matched_pipes = []
         response_text = response.content.decode("utf-8")
         soup = bs4.BeautifulSoup(response_text, "lxml-xml")
-        meter_points = soup.find_all("RelationEntities", attrs={"i:type": "PipeRelationEntities"})
-
-        return meter_points
-    
+        for name_elem in soup.find_all("Name"):
+            if "ТВ-7 №" in name_elem.text:
+                parent = name_elem.parent
+                matched_pipes.append(parent)
+        return matched_pipes
+            
     def prepare_time_range(self, time_range: TimeRangeForDataSync = TimeRangeForDataSync(start = "", end = ""), time_partition: TimePartition = "30m") -> list[TimeRangeForDataSync] | int:
         try:
             if time_range.start == "" or time_range.end == "":
