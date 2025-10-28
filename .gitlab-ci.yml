@@ -66,7 +66,8 @@ deploy_prod:
   script:
     - |
       ssh -T -i "$DATALENS_SSH_KEY" "$DATALENS_USER@$DATALENS_HOST_FOR_DOCKER_RUNNER" <<EOF
-        echo '$REGISTRY_ACCESS_TOKEN' | docker login $REGISTRY -u $REGISTRY_USER --password-stdin
+        echo "$ACCESS_TOKEN_REPO"
+        echo '${ACCESS_TOKEN_REPO}' | docker login '${CI_REGISTRY}' -u '${DEPLOY_BOT_AT}' --password-stdin
         cd $PROD_PATH
         docker compose pull
         docker compose up -d --force-recreate
