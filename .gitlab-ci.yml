@@ -53,12 +53,12 @@ build-dev:
 
 deploy_prod:
   stage: deploy
-  image: alpine:latest
+  image: alpine:3.21
   tags: [docker]
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
   before_script:
-    - apk update && apk add --no-cache openssh-client 
+    - apk add --no-cache openssh-client-default
     - mkdir -p ~/.ssh
     - chmod og= "$DATALENS_SSH_KEY"
     - echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
