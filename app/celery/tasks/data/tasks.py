@@ -375,7 +375,7 @@ async def schedule_sync_history_data(tag_title: str = "", time_range: tuple[str 
 
     device_service = DeviceService(uow)
 
-    if tag_title in ["AverageAbsolutePressurePerDay", "TemperatureMinPerDay", "VolumeMaxPerDay", "VolumeForwardFixDay"] \
+    if tag_title in ["AverageAbsolutePressurePerDay", "VolumePerDay", "AverageTemperaturePerDay", "MassPerDay"] \
         and meter_points == []:
         sync_ids = await device_service.get_devices_sync_ids_by_regexp("ТВ[-]?7")
 
