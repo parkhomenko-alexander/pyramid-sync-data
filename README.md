@@ -23,6 +23,6 @@ celery -A celery_app call tasks.data.tasks.load_electro --kwargs='{"file_name": 
 
 uv run celery -A app.celery.celery_app call app.celery.tasks.data.tasks.sync_pipe_entities
 uv run celery -A app.celery.celery_app call app.celery.tasks.data.tasks.schedule_sync_history_data --kwargs='{"tag_title": "AverageAbsolutePressurePerDay", "time_range": ["2023-06-01T00:00:00", "2026-09-30T20:08:00"], "time_partition":"1month"}'
-uv run celery -A app.celery.celery_app call app.celery.tasks.data.tasks.schedule_sync_history_data --kwargs='{"tag_title": "TemperatureMinPerDay", "time_range": ["2023-06-01T00:00:00", "2026-09-30T20:08:00"], "time_partition":"1month"}'
-uv run celery -A app.celery.celery_app call app.celery.tasks.data.tasks.schedule_sync_history_data --kwargs='{"tag_title": "VolumeMaxPerDay", "time_range": ["2023-06-01T00:00:00", "2026-09-30T20:08:00"], "time_partition": "1month"}'
-uv run celery -A app.celery.celery_app call app.celery.tasks.data.tasks.schedule_sync_history_data --kwargs='{"tag_title": "VolumeForwardFixDay", "time_range": ["2023-06-01T00:00:00", "2026-09-30T20:08:00"], "time_partition":"1month"}'
+uv run celery -A app.celery.celery_app call app.celery.tasks.data.tasks.schedule_sync_history_data --kwargs='{"tag_title": "AverageTemperaturePerDay", "time_range": ["2023-06-01T00:00:00", "2026-09-30T20:08:00"], "time_partition":"1month"}'
+uv run celery -A app.celery.celery_app call app.celery.tasks.data.tasks.schedule_sync_history_data --kwargs='{"tag_title": "VolumePerDayProfile", "time_range": ["2023-06-01T00:00:00", "2026-09-30T20:08:00"], "time_partition": "1month"}'
+uv run celery -A app.celery.celery_app call app.celery.tasks.data.tasks.schedule_sync_history_data --kwargs='{"tag_title": "MassPerDay", "time_range": ["2023-06-01T00:00:00", "2026-09-30T20:08:00"], "time_partition":"1month"}'

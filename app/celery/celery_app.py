@@ -39,7 +39,7 @@ celery_app.conf.beat_schedule = {
     "sync_pipe_volume_per_day": {
         "task": "app.celery.tasks.data.tasks.schedule_sync_history_data",
         "schedule": crontab(hour=17, minute=0),
-        "kwargs": {"tag_title": "VolumePerDay", "time_partition": "1month",}
+        "kwargs": {"tag_title": "VolumePerDayProfile", "time_partition": "1month",}
     },
     "sync_pipe_mass_per_day": {
         "task": "app.celery.tasks.data.tasks.schedule_sync_history_data",
