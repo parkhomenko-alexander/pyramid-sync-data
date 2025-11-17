@@ -28,23 +28,23 @@ celery_app.conf.beat_schedule = {
     },
     "sync_pipe_absolute_pressure_per_day": {
         "task": "app.celery.tasks.data.tasks.schedule_sync_history_data",
-        "schedule": crontab(hour=17, minute=0),
+        "schedule": crontab(hour="*/2"),
         "kwargs": {"tag_title": "AverageAbsolutePressurePerDay", "time_partition": "1month",}
     },
     "sync_pipe_temperature_per_day": {
         "task": "app.celery.tasks.data.tasks.schedule_sync_history_data",
-        "schedule": crontab(hour=17, minute=0),
+        "schedule": crontab(hour="*/2"),
         "kwargs": {"tag_title": "AverageTemperaturePerDay", "time_partition": "1month",}
     },
     "sync_pipe_volume_per_day": {
         "task": "app.celery.tasks.data.tasks.schedule_sync_history_data",
-        "schedule": crontab(hour=17, minute=0),
+        "schedule": crontab(hour="*/2"),
         "kwargs": {"tag_title": "VolumePerDayProfile", "time_partition": "1month",}
     },
     "sync_pipe_mass_per_day": {
         "task": "app.celery.tasks.data.tasks.schedule_sync_history_data",
-        "schedule": crontab(hour=17, minute=0),
-        "kwargs": {"tag_title": "MassPerDay", "time_partition": "1month",}
+        "schedule": crontab(hour="*/2"),
+        "kwargs": {"tag_title": "MassPerDayProfile", "time_partition": "1month",}
     },
     "sync_power_from_tags": {
         "task": "app.celery.tasks.data.tasks.schedule_sync_history_data",
