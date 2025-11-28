@@ -41,3 +41,27 @@ class GetDataQueryParams(BaseModel):
         "b",
         description="Data type: 'b' or 'cg'"
     )
+
+class CGRequest(BaseModel):
+    groups: list[int] = Field([1, 2, 3])
+    start: datetime = Field(datetime(2025, 1, 1, 0, 00, 0))
+    end: datetime = Field(datetime(2025, 1, 4, 0, 00, 0))
+    
+    # model_config = {
+    #     "json_schema_extra": {
+    #         "examples": [
+    #             {
+    #                 "groups": [1, 2],
+    #                 "start": "2025-01-01T00:00:00Z",
+    #                 "end": "2025-01-02T00:00:00Z"
+    #             },
+    #             {
+    #                 "groups": [1, 3],
+    #                 "start": "2025-01-01T00:00:00Z",
+    #                 "end": "2025-01-02T00:00:00Z"
+    #             },
+    #         ]
+    #     }
+    # }
+
+

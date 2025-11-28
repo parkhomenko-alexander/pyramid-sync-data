@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Sequence
 
-from sqlalchemy import ARRAY, TIMESTAMP, String, and_, bindparam, select, text, tuple_, update
+from sqlalchemy import ARRAY, TIMESTAMP, String, INTEGER, and_, bindparam, select, text, tuple_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.data import Data
@@ -254,3 +254,43 @@ class DataRepository(SQLAlchemyRepository[Data]):
         )
         r = result.mappings().all()
         return r
+
+    async def get_data_for_specific_devices(
+        self,
+        start: datetime,
+        end: datetime,
+        # sync_ids: list[int],
+        groups: list[tuple[int, str]],
+        tag: str
+    ):
+        values_sql = ", ".join(
+            f"({sync_id}, '{group_name}')" 
+            for sync_id, group_name in groups
+        )
+        stmt = text(
+            f"""
+                WITH groups(device_sync_id, group_name) AS (
+                    VALUES {values_sql}
+                )
+
+                SELECT
+                    g.group_name,
+                    d.created_at,
+                    SUM(d.value) / 1000000 AS value
+                FROM data d
+                JOIN groups g ON g.device_sync_id = d.device_sync_id
+                WHERE d.created_at BETWEEN :start AND :end
+                AND d.tag_id = (SELECT id FROM tags WHERE title = :tag)
+                GROUP BY g.group_name, d.created_at
+                ORDER BY g.group_name, d.created_at;
+            """
+        ).bindparams(
+            bindparam("start", start, type_=TIMESTAMP),
+            bindparam("end", end, type_=TIMESTAMP),
+            bindparam("tag", tag, type_=String)
+        )
+
+        res = await self.async_session.execute(stmt)
+
+        return res.mappings().all()
+

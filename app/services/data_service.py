@@ -1,5 +1,6 @@
+from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Sequence
+from typing import Mapping, Sequence
 from loguru import logger
 
 from app.schemas.data_schema import DataAddSheme, GetDataQueryParams
@@ -142,3 +143,118 @@ class DataService():
             microseconds=dt.microsecond
         )
         return dt - discard
+
+    def make_consumer_groups_markers(self) -> Mapping:
+        return {
+            "Корпус 1": 1,
+            "Корпус 2": 2,
+            "Корпус 3": 3,
+            "Корпус 4": 4,
+            "Корпус 5": 5,
+            "Корпус 6": 6,
+            "Корпус 7": 7,
+            "Корпус 8": 8,
+            "Корпус 9": 9,
+            "Корпус 10": 10,
+            "Корпус 11": 11,
+            "Корпус A": 12,
+            "Корпус BDS": 13,
+            "Корпус C": 14,
+            "Корпус E": 15,
+            "Корпус F": 16,
+            "Корпус G": 17,
+            "Корпус S1": 18,
+            "Корпус S2": 19,
+            "Корпус L": 20,
+            "Корпус M": 21,
+
+            "Корпус 1 - Вентиляция": 22,
+            "Корпус 1 - Итп": 23,
+            "Корпус 1 - Розетки": 24,
+            "Корпус 1 - Освещение": 25,
+            "Корпус 1 - ГПМ, АПС, Пож.вентиляция": 26,
+
+            "Корпус 2 - Вентиляция": 27,
+            "Корпус 2 - Итп": 28,
+            "Корпус 2 - Розетки": 29,
+            "Корпус 2 - Освещение": 30,
+            "Корпус 2 - ГПМ, АПС, Пож.вентиляция": 31,
+        }
+    
+    def make_comsumer_group_sync_id(self,) -> Mapping:
+        return {
+            "Корпус 1": [53484],
+            "Корпус 2": [53519],
+            "Корпус 3": [53560],
+            "Корпус 4": [53559],
+            "Корпус 5": [53674],
+            "Корпус 6": [53618],
+            "Корпус 7": [53801],
+            "Корпус 8": [53678],
+            "Корпус 9": [53925],
+            "Корпус 10": [53757],
+            "Корпус 11": [53850],
+            "Корпус A": [54270],
+            "Корпус BDS": [54030],
+            "Корпус C": [54297],
+            "Корпус E": [54380],
+            "Корпус F": [54511],
+            "Корпус G": [54462],
+            "Корпус S1": [54448],
+            "Корпус S2": [54434],
+            "Корпус L": [54149],
+            "Корпус M": [53987],
+
+            "Корпус M - Вентиляция": [
+                51904,
+                52066,
+                52072,
+                52084,
+                52090,
+                61329,
+            ],
+            "Корпус M - Итп": [51934, 51940],
+            # "Корпус 1 - Розетки": [],
+            # "Корпус 1 - Освещение": [],
+            # "Корпус 1 - ГПМ, АПС, Пож.вентиляция": [],
+
+            # "Корпус 2 - Вентиляция": [],
+            # "Корпус 2 - Итп": [],
+            # "Корпус 2 - Розетки": [],
+            # "Корпус 2 - Освещение": [],
+            # "Корпус 2 - ГПМ, АПС, Пож.вентиляция": [],
+        }
+    
+    async def get_data_for_consumer_groups(self, markers: list[int] | None, start: datetime, end: datetime) -> Mapping:
+        if not(markers and len(markers) > 0):
+            raise ValueError("Bad request")
+        
+        marker_group = {
+            v: k
+            for k, v in self.make_consumer_groups_markers().items()
+        }
+        group_sync_ids = self.make_comsumer_group_sync_id()
+        
+        selected_groups: set[str] = {
+            marker_group[m] for m in markers if m in marker_group
+        }
+
+        groups = []
+        for group_name in selected_groups:
+            for sync_id in group_sync_ids.get(group_name, []):
+                groups.append((sync_id, group_name))
+
+
+        result = {}
+        async with self.uow:
+            data_repo = self.uow.data_repo
+            rows = await data_repo.get_data_for_specific_devices(start, end, groups, tag="EnergyActiveForward30Min")
+
+            for r in rows:
+                grp = r["group_name"]
+                result.setdefault(grp, []).append({
+                    "created_at": r["created_at"],
+                    "value": float(r["value"]),
+                })
+        return result
+    
