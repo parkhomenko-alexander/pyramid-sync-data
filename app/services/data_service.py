@@ -144,42 +144,42 @@ class DataService():
         )
         return dt - discard
 
-    def make_consumer_groups_markers(self) -> Mapping:
-        return {
-            "Корпус 1": 1,
-            "Корпус 2": 2,
-            "Корпус 3": 3,
-            "Корпус 4": 4,
-            "Корпус 5": 5,
-            "Корпус 6": 6,
-            "Корпус 7": 7,
-            "Корпус 8": 8,
-            "Корпус 9": 9,
-            "Корпус 10": 10,
-            "Корпус 11": 11,
-            "Корпус A": 12,
-            "Корпус BDS": 13,
-            "Корпус C": 14,
-            "Корпус E": 15,
-            "Корпус F": 16,
-            "Корпус G": 17,
-            "Корпус S1": 18,
-            "Корпус S2": 19,
-            "Корпус L": 20,
-            "Корпус M": 21,
+    def make_consumer_groups_markers(self) -> Sequence:
+        return [
+            {"title": "Корпус 1", "id": 1},
+            {"title": "Корпус 2", "id": 2},
+            {"title": "Корпус 3", "id": 3},
+            {"title": "Корпус 4", "id": 4},
+            {"title": "Корпус 5", "id": 5},
+            {"title": "Корпус 6", "id": 6},
+            {"title": "Корпус 7", "id": 7},
+            {"title": "Корпус 8", "id": 8},
+            {"title": "Корпус 9", "id": 9},
+            {"title": "Корпус 10", "id": 10},
+            {"title": "Корпус 11", "id": 11},
+            {"title": "Корпус A", "id": 12},
+            {"title": "Корпус BDS", "id": 13},
+            {"title": "Корпус C", "id": 14},
+            {"title": "Корпус E", "id": 15},
+            {"title": "Корпус F", "id": 16},
+            {"title": "Корпус G", "id": 17},
+            {"title": "Корпус S1", "id": 18},
+            {"title": "Корпус S2", "id": 19},
+            {"title": "Корпус L", "id": 20},
+            {"title": "Корпус M", "id": 21},
 
-            "Корпус 1 - Вентиляция": 22,
-            "Корпус 1 - Итп": 23,
-            "Корпус 1 - Розетки": 24,
-            "Корпус 1 - Освещение": 25,
-            "Корпус 1 - ГПМ, АПС, Пож.вентиляция": 26,
+            {"title": "Корпус 1 - Вентиляция", "id": 22},
+            {"title": "Корпус 1 - Итп", "id": 23},
+            {"title": "Корпус 1 - Розетки", "id": 24},
+            {"title": "Корпус 1 - Освещение", "id": 25},
+            {"title": "Корпус 1 - ГПМ, АПС, Пож.вентиляция", "id": 26},
 
-            "Корпус 2 - Вентиляция": 27,
-            "Корпус 2 - Итп": 28,
-            "Корпус 2 - Розетки": 29,
-            "Корпус 2 - Освещение": 30,
-            "Корпус 2 - ГПМ, АПС, Пож.вентиляция": 31,
-        }
+            {"title": "Корпус 2 - Вентиляция", "id": 27},
+            {"title": "Корпус 2 - Итп", "id": 28},
+            {"title": "Корпус 2 - Розетки", "id": 29},
+            {"title": "Корпус 2 - Освещение", "id": 30},
+            {"title": "Корпус 2 - ГПМ, АПС, Пож.вентиляция", "id": 31},
+        ]
     
     def make_comsumer_group_sync_id(self,) -> Mapping:
         return {
@@ -230,8 +230,8 @@ class DataService():
             raise ValueError("Bad request")
         
         marker_group = {
-            v: k
-            for k, v in self.make_consumer_groups_markers().items()
+            e["id"]: e["title"]
+            for e in self.make_consumer_groups_markers()
         }
         group_sync_ids = self.make_comsumer_group_sync_id()
         
@@ -253,7 +253,7 @@ class DataService():
             for r in rows:
                 grp = r["group_name"]
                 result.setdefault(grp, []).append({
-                    "created_at": r["created_at"],
+                    "created": r["created_at"],
                     "value": float(r["value"]),
                 })
         return result

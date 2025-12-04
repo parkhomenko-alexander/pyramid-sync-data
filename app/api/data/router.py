@@ -1,5 +1,6 @@
+from asyncio import sleep as asleep
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Sequence
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from app.api.dependencies import get_data_service
 from app.schemas.data_schema import CGRequest, GetDataQueryParams
@@ -7,11 +8,17 @@ from app.services.data_service import DataService
 from app.api.data.open_api_examples import cg_examples
 from config import config
 from loguru import logger
+from fastapi.responses import StreamingResponse
 
 
 router = APIRouter(
     tags=['Data']
 )
+
+async def fake_video_streamer():
+    for i in range(4):
+        yield b"some fake video bytes \n"
+        await asleep(.5)
 
 
 
@@ -31,7 +38,7 @@ async def get_data_by_type(
 
 @router.get(
     '/consumer_groups',
-    response_model=dict
+    response_model=Sequence
 )
 async def get_consumer_groups(
     ds: DataService = Depends(get_data_service)
@@ -54,3 +61,10 @@ async def get_consumer_groups_data(
     res = await ds.get_data_for_consumer_groups(payload.groups, payload.start, payload.end)
 
     return res
+
+@router.get(
+    '/stream',
+)
+async def stream(
+):
+    return StreamingResponse(fake_video_streamer())
