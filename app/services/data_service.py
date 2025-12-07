@@ -1,12 +1,18 @@
 from collections import defaultdict
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Mapping, Sequence
+from typing import Iterable, Mapping, Sequence
 from loguru import logger
 
 from app.schemas.data_schema import DataAddSheme, GetDataQueryParams
 from app.services.helper import with_uow
 from app.utils.unit_of_work import AbstractUnitOfWork
 
+@dataclass(frozen=True)
+class ConsumerGroupRange:
+    id: int
+    start: datetime
+    end: datetime
 
 class DataService():
     def __init__(self, uow: AbstractUnitOfWork):
@@ -258,3 +264,36 @@ class DataService():
                 })
         return result
     
+    async def get_data_for_consumer_groups_diff_groups(self, queries: Iterable[ConsumerGroupRange]):
+        marker_group_id_title = {
+            e["id"]: e["title"]
+            for e in self.make_consumer_groups_markers()
+        }
+        groups_title_id = self.make_comsumer_group_sync_id()
+        
+        results = []
+
+        async with self.uow:
+            data_repo = self.uow.data_repo
+
+            for q in queries:
+                group_title = marker_group_id_title.get(q.id, None)
+                if not group_title:
+                    raise ValueError("Bad request, group no exists")
+                groups = [(g, group_title) for g in groups_title_id.get(group_title,[])]
+                rows = await data_repo.get_data_for_specific_devices(q.start, q.end, groups, tag="EnergyActiveForward30Min")
+                res = {
+                    "group": group_title,
+                    "data": [
+                        {
+                            "value": d["value"],
+                            "created": d["created_at"]
+                        }
+                        for d in rows
+                    ]
+                }
+                results.append(res)
+        
+        return results
+
+

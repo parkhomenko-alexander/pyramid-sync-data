@@ -3,9 +3,9 @@ from datetime import datetime
 from typing import Annotated, Literal, Sequence
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from app.api.dependencies import get_data_service
-from app.schemas.data_schema import CGRequest, GetDataQueryParams
-from app.services.data_service import DataService
-from app.api.data.open_api_examples import cg_examples
+from app.schemas.data_schema import CGRequest, ConsumerGroupDatatRequest, ConsumerGroupQuery, GetDataQueryParams
+from app.services.data_service import ConsumerGroupRange, DataService
+from app.api.data.open_api_examples import consumer_groups_data_request_examples
 from config import config
 from loguru import logger
 from fastapi.responses import StreamingResponse
@@ -48,7 +48,7 @@ async def get_consumer_groups(
 
 
 @router.get(
-    '/consumer_groups/data',
+    '/consumer_groups/query',
     response_model=dict
 )
 async def get_consumer_groups_data(
@@ -61,6 +61,29 @@ async def get_consumer_groups_data(
     res = await ds.get_data_for_consumer_groups(payload.groups, payload.start, payload.end)
 
     return res
+
+
+@router.post(
+    "/consumer-groups/query",
+    response_model=list,
+)
+async def query_consumer_groups_data(
+    queries: Annotated[
+        list[ConsumerGroupQuery],
+        Body(
+            openapi_examples=consumer_groups_data_request_examples
+        )
+    ],
+    ds: DataService = Depends(get_data_service),
+):  
+    q = [
+        ConsumerGroupRange(id=q.id, start=q.start, end=q.end)
+        for q in queries
+    ]
+    return await ds.get_data_for_consumer_groups_diff_groups(
+        q
+    )
+
 
 @router.get(
     '/stream',
