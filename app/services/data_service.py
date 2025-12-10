@@ -8,12 +8,21 @@ from app.schemas.data_schema import DataAddSheme, GetDataQueryParams
 from app.services.helper import with_uow
 from app.utils.unit_of_work import AbstractUnitOfWork
 
-@dataclass(frozen=True)
-class ConsumerGroupRange:
-    id: int
+@dataclass(frozen=True, kw_only=True)
+class ConsumerGroupRangeBase:
     start: datetime
     end: datetime
     mode: Literal["raw", "1d", "3d", "7d", "1mon"] = "raw"
+
+
+@dataclass(frozen=True)
+class ConsumerGroupRangeId(ConsumerGroupRangeBase):
+    id: int
+
+@dataclass(frozen=True)
+class ConsumerGroupRangeListId(ConsumerGroupRangeBase):
+    id: list[int]
+    
 
 class DataService():
     def __init__(self, uow: AbstractUnitOfWork):
@@ -265,7 +274,7 @@ class DataService():
                 })
         return result
     
-    async def get_data_for_consumer_groups_diff_groups(self, queries: Iterable[ConsumerGroupRange]):
+    async def get_data_for_consumer_groups_diff_groups(self, queries: Iterable[ConsumerGroupRangeId]):
         marker_group_id_title = {
             e["id"]: e["title"]
             for e in self.make_consumer_groups_markers()
@@ -298,3 +307,35 @@ class DataService():
         return results
 
 
+    async def get_data_for_consumer_groups_diff_groups_list_id(self, queries: Iterable[ConsumerGroupRangeListId]):
+        marker_group_id_title = {
+            e["id"]: e["title"]
+            for e in self.make_consumer_groups_markers()
+        }
+        groups_title_id = self.make_comsumer_group_sync_id()
+        
+        results = []
+
+        async with self.uow:
+            data_repo = self.uow.data_repo
+
+            for q in queries:
+                for id in q.id:
+                    group_title = marker_group_id_title.get(id, None)
+                    if not group_title:
+                        raise ValueError("Bad request, group no exists")
+                    groups = [(g, group_title) for g in groups_title_id.get(group_title,[])]
+                    rows = await data_repo.get_data_for_specific_devices(q.start, q.end, groups, tag="EnergyActiveForward30Min", group_mode=q.mode)
+                    res = {
+                        "group": group_title,
+                        "data": [
+                            {
+                                "value": d["value"],
+                                "created": d["created"]
+                            }
+                            for d in rows
+                        ]
+                    }
+                    results.append(res)
+        
+        return results

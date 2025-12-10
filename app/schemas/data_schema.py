@@ -48,11 +48,13 @@ class CGRequest(BaseModel):
     end: datetime = Field(datetime(2025, 1, 4, 0, 00, 0))
 
 
-class ConsumerGroupQuery(BaseModel):
-    id: int
+class ConsumerGroupQueryBase(BaseModel):
     start: datetime
     end: datetime
     mode: Literal["raw", "1d", "3d", "7d", "1mon"] = "raw"
 
-class ConsumerGroupDatatRequest(BaseModel):
-    queries: list[ConsumerGroupQuery]
+class ConsumerGroupQueryId(ConsumerGroupQueryBase):
+    id: int
+
+class ConsumerGroupQueryIdList(ConsumerGroupQueryBase):
+    id: list[int]

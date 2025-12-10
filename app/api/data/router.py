@@ -3,9 +3,9 @@ from datetime import datetime
 from typing import Annotated, Literal, Sequence
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from app.api.dependencies import get_data_service
-from app.schemas.data_schema import CGRequest, ConsumerGroupDatatRequest, ConsumerGroupQuery, GetDataQueryParams
-from app.services.data_service import ConsumerGroupRange, DataService
-from app.api.data.open_api_examples import consumer_groups_data_request_examples
+from app.schemas.data_schema import CGRequest, ConsumerGroupQueryId, ConsumerGroupQueryIdList, GetDataQueryParams
+from app.services.data_service import ConsumerGroupRangeId, ConsumerGroupRangeListId, DataService
+from app.api.data.open_api_examples import consumer_groups_data_request_examples, consumer_groups_data_requestlist_id_examples
 from config import config
 from loguru import logger
 from fastapi.responses import StreamingResponse
@@ -69,7 +69,7 @@ async def get_consumer_groups_data(
 )
 async def query_consumer_groups_data(
     queries: Annotated[
-        list[ConsumerGroupQuery],
+        list[ConsumerGroupQueryId],
         Body(
             openapi_examples=consumer_groups_data_request_examples
         )
@@ -77,13 +77,34 @@ async def query_consumer_groups_data(
     ds: DataService = Depends(get_data_service),
 ):  
     q = [
-        ConsumerGroupRange(id=q.id, start=q.start, end=q.end, mode= q.mode)
+        ConsumerGroupRangeId(id=q.id, start=q.start, end=q.end, mode= q.mode)
         for q in queries
     ]
     return await ds.get_data_for_consumer_groups_diff_groups(
         q
     )
 
+
+@router.post(
+    "/consumer-groups/query-list",
+    response_model=list,
+)
+async def query_consumer_groups_data_list_id(
+    queries: Annotated[
+        list[ConsumerGroupQueryIdList],
+        Body(
+            openapi_examples=consumer_groups_data_requestlist_id_examples
+        )
+    ],
+    ds: DataService = Depends(get_data_service),
+):  
+    q = [
+        ConsumerGroupRangeListId(id=q.id, start=q.start, end=q.end, mode= q.mode)
+        for q in queries
+    ]
+    return await ds.get_data_for_consumer_groups_diff_groups_list_id(
+        q
+    )
 
 @router.get(
     '/stream',
