@@ -1,6 +1,6 @@
 
 from datetime import datetime
-from typing import Sequence
+from typing import Literal, Sequence
 
 from sqlalchemy import ARRAY, TIMESTAMP, String, INTEGER, and_, bindparam, select, text, tuple_, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -261,33 +261,86 @@ class DataRepository(SQLAlchemyRepository[Data]):
         end: datetime,
         # sync_ids: list[int],
         groups: list[tuple[int, str]],
-        tag: str
+        tag: str,
+        group_mode: Literal["1d", "3d", "7d", "1mon"] = "1d"
     ):
         values_sql = ", ".join(
             f"({sync_id}, '{group_name}')" 
             for sync_id, group_name in groups
         )
+        # stmt = text(
+        #     f"""
+        #         WITH groups(device_sync_id, group_name) AS (
+        #             VALUES {values_sql}
+        #         )
+
+        #         SELECT
+        #             g.group_name,
+        #             d.created_at,
+        #             SUM(d.value) / 1000000 AS value
+        #         FROM data d
+        #         JOIN groups g ON g.device_sync_id = d.device_sync_id
+        #         WHERE d.created_at BETWEEN :start AND :end
+        #             AND d.tag_id = (SELECT id FROM tags WHERE title = :tag)
+        #         GROUP BY g.group_name, d.created_at
+        #         ORDER BY g.group_name, d.created_at;
+        #     """
+        # ).bindparams(
+        #     bindparam("start", start, type_=TIMESTAMP),
+        #     bindparam("end", end, type_=TIMESTAMP),
+        #     bindparam("tag", tag, type_=String)
+        # )
+
         stmt = text(
             f"""
                 WITH groups(device_sync_id, group_name) AS (
                     VALUES {values_sql}
+                ),
+
+                base AS (
+                    SELECT
+                        g.group_name,
+                        d.created_at,
+                        d.value
+                    FROM data d
+                    JOIN groups g ON g.device_sync_id = d.device_sync_id
+                    WHERE d.created_at BETWEEN :start AND :end
+                    AND d.tag_id = (SELECT id FROM tags WHERE title = :tag)
+                ),
+                
+                prepared AS (
+                    SELECT
+                        group_name,
+                        value,
+                        CASE
+                            WHEN :group_mode = '1d' THEN
+                                date_trunc('day', created_at)
+                            WHEN :group_mode = '3d' THEN
+                                date_trunc('day', created_at)
+                                - ((EXTRACT(DOY FROM created_at)::int - 1) % 3) * INTERVAL '1 day'
+                            WHEN :group_mode = '7d' THEN
+                                date_trunc('week', created_at)
+                            WHEN :group_mode = '1mon' THEN
+                                date_trunc('month', created_at)
+                            ELSE
+                                date_trunc('day', created_at)
+                        END AS period_start
+                    FROM base
                 )
 
                 SELECT
-                    g.group_name,
-                    d.created_at,
-                    SUM(d.value) / 1000000 AS value
-                FROM data d
-                JOIN groups g ON g.device_sync_id = d.device_sync_id
-                WHERE d.created_at BETWEEN :start AND :end
-                AND d.tag_id = (SELECT id FROM tags WHERE title = :tag)
-                GROUP BY g.group_name, d.created_at
-                ORDER BY g.group_name, d.created_at;
+                    group_name,
+                    period_start as created,
+                    SUM(value) / 1000000 AS value
+                FROM prepared
+                GROUP BY group_name, period_start
+                ORDER BY group_name, period_start;
             """
         ).bindparams(
             bindparam("start", start, type_=TIMESTAMP),
             bindparam("end", end, type_=TIMESTAMP),
-            bindparam("tag", tag, type_=String)
+            bindparam("tag", tag, type_=String),
+            bindparam("group_mode", group_mode, type_=String)
         )
 
         res = await self.async_session.execute(stmt)

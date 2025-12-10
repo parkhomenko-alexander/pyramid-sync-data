@@ -77,7 +77,7 @@ async def query_consumer_groups_data(
     ds: DataService = Depends(get_data_service),
 ):  
     q = [
-        ConsumerGroupRange(id=q.id, start=q.start, end=q.end)
+        ConsumerGroupRange(id=q.id, start=q.start, end=q.end, mode= q.mode)
         for q in queries
     ]
     return await ds.get_data_for_consumer_groups_diff_groups(

@@ -27,4 +27,4 @@ uv run celery -A app.celery.celery_app call app.celery.tasks.data.tasks.schedule
 uv run celery -A app.celery.celery_app call app.celery.tasks.data.tasks.schedule_sync_history_data --kwargs='{"tag_title": "VolumePerDayProfile", "time_range": ["2023-06-01T00:00:00", "2026-09-30T20:08:00"], "time_partition": "1month"}'
 uv run celery -A app.celery.celery_app call app.celery.tasks.data.tasks.schedule_sync_history_data --kwargs='{"tag_title": "MassPerDayProfile", "time_range": ["2023-06-01T00:00:00", "2026-09-30T20:08:00"], "time_partition":"1month"}'
 
-uv run celery -A app.celery.celery_app call app.celery.tasks.data.tasks.schedule_sync_history_data --kwargs='{"tag_title": "EnergyActiveForward30Min", "time_range": ["2023-06-01T00:00:00", "2026-09-30T20:08:00"], "time_partition":"1month", "meter_points": [9923]}'
+uv run celery -A app.celery.celery_app call app.celery.tasks.data.tasks.schedule_sync_history_data --kwargs='{"tag_title": "EnergyActiveForward30Min", "time_range": ["2022-08-01T00:00:00", "2022-12-01T20:08:00"], "time_partition":"1month", "meter_points": [3569]}'

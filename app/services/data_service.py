@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Iterable, Mapping, Sequence
+from typing import Iterable, Literal, Mapping, Sequence
 from loguru import logger
 
 from app.schemas.data_schema import DataAddSheme, GetDataQueryParams
@@ -13,6 +13,7 @@ class ConsumerGroupRange:
     id: int
     start: datetime
     end: datetime
+    mode: Literal["1d", "3d", "7d", "1mon"] = "1d"
 
 class DataService():
     def __init__(self, uow: AbstractUnitOfWork):
@@ -281,13 +282,13 @@ class DataService():
                 if not group_title:
                     raise ValueError("Bad request, group no exists")
                 groups = [(g, group_title) for g in groups_title_id.get(group_title,[])]
-                rows = await data_repo.get_data_for_specific_devices(q.start, q.end, groups, tag="EnergyActiveForward30Min")
+                rows = await data_repo.get_data_for_specific_devices(q.start, q.end, groups, tag="EnergyActiveForward30Min", group_mode=q.mode)
                 res = {
                     "group": group_title,
                     "data": [
                         {
                             "value": d["value"],
-                            "created": d["created_at"]
+                            "created": d["created"]
                         }
                         for d in rows
                     ]
