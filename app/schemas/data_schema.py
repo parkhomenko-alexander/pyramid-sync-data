@@ -52,7 +52,7 @@ class ConsumerGroupQuery(BaseModel):
     id: int
     start: datetime
     end: datetime
-    mode: Literal["1d", "3d", "7d", "1mon"] = "1d"
+    mode: Literal["raw", "1d", "3d", "7d", "1mon"] = "raw"
 
 class ConsumerGroupDatatRequest(BaseModel):
     queries: list[ConsumerGroupQuery]

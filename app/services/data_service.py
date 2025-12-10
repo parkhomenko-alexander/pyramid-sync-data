@@ -13,7 +13,7 @@ class ConsumerGroupRange:
     id: int
     start: datetime
     end: datetime
-    mode: Literal["1d", "3d", "7d", "1mon"] = "1d"
+    mode: Literal["raw", "1d", "3d", "7d", "1mon"] = "raw"
 
 class DataService():
     def __init__(self, uow: AbstractUnitOfWork):

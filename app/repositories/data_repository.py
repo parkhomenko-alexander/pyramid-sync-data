@@ -262,7 +262,7 @@ class DataRepository(SQLAlchemyRepository[Data]):
         # sync_ids: list[int],
         groups: list[tuple[int, str]],
         tag: str,
-        group_mode: Literal["1d", "3d", "7d", "1mon"] = "1d"
+        group_mode: Literal["raw", "1d", "3d", "7d", "1mon"] = "raw"
     ):
         values_sql = ", ".join(
             f"({sync_id}, '{group_name}')" 
@@ -323,7 +323,7 @@ class DataRepository(SQLAlchemyRepository[Data]):
                             WHEN :group_mode = '1mon' THEN
                                 date_trunc('month', created_at)
                             ELSE
-                                date_trunc('day', created_at)
+                                created_at
                         END AS period_start
                     FROM base
                 )
