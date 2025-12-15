@@ -324,9 +324,20 @@ class DataRepository(SQLAlchemyRepository[Data]):
                                     + (((created_at::date - CAST(:start AS date)) / 3) * 3) * INTERVAL '1 day'
                                 )
                             WHEN :group_mode = '7d' THEN
-                                date_trunc('week', created_at)
+                                (
+                                    date_trunc('day', :start)
+                                    + (((created_at::date - CAST(:start AS date)) / 7) * 7) * INTERVAL '1 day'
+                                )
                             WHEN :group_mode = '1mon' THEN
-                                date_trunc('month', created_at)
+                            (
+                                date_trunc('day', :start)
+                                + (
+                                    (
+                                        EXTRACT(YEAR  FROM age(created_at, :start))::int * 12
+                                        + EXTRACT(MONTH FROM age(created_at, :start))::int
+                                    ) * INTERVAL '1 month'
+                                )
+                            )
                             ELSE
                                 created_at
                         END AS period_start
