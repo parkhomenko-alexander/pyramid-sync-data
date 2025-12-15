@@ -51,7 +51,7 @@ class CGRequest(BaseModel):
 class ConsumerGroupQueryBase(BaseModel):
     start: datetime
     end: datetime
-    mode: Literal["raw", "1d", "3d", "7d", "1mon"] = "raw"
+    mode: Literal["raw", "1d", "3d", "7d", "1mon", "1q", "1y"] = "raw"
 
 class ConsumerGroupQueryId(ConsumerGroupQueryBase):
     id: int

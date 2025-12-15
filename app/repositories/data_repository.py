@@ -262,7 +262,7 @@ class DataRepository(SQLAlchemyRepository[Data]):
         # sync_ids: list[int],
         groups: list[tuple[int, str]],
         tag: str,
-        group_mode: Literal["raw", "1d", "3d", "7d", "1mon"] = "raw"
+        group_mode: Literal["raw", "1d", "3d", "7d", "1mon", "1q", "1y"] = "raw"
     ):
         # values_sql = ", ".join(
         #     f"({sync_id}, '{group_name}')" 
@@ -337,6 +337,30 @@ class DataRepository(SQLAlchemyRepository[Data]):
                                         + EXTRACT(MONTH FROM age(created_at, :start))::int
                                     ) * INTERVAL '1 month'
                                 )
+                            )
+                            WHEN :group_mode = '1q' THEN
+                            (
+                                date_trunc('day', :start)
+                                + (
+                                    (
+                                        (
+                                        EXTRACT(YEAR  FROM age(created_at, :start))::int * 12
+                                        + EXTRACT(MONTH FROM age(created_at, :start))::int
+                                        ) / 3
+                                    ) * 3
+                                    ) * INTERVAL '1 month'
+                            )
+                            WHEN :group_mode = '1y' THEN
+                            (
+                                date_trunc('day', :start)
+                                + (
+                                    (
+                                        (
+                                        EXTRACT(YEAR  FROM age(created_at, :start))::int * 12
+                                        + EXTRACT(MONTH FROM age(created_at, :start))::int
+                                        ) / 12
+                                    ) * 12
+                                    ) * INTERVAL '1 month'
                             )
                             ELSE
                                 created_at

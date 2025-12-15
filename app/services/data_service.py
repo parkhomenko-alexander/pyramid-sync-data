@@ -12,7 +12,7 @@ from app.utils.unit_of_work import AbstractUnitOfWork
 class ConsumerGroupRangeBase:
     start: datetime
     end: datetime
-    mode: Literal["raw", "1d", "3d", "7d", "1mon"] = "raw"
+    mode: Literal["raw", "1d", "3d", "7d", "1mon", "1q", "1y"] = "raw"
 
 
 @dataclass(frozen=True)
