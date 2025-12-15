@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Literal, Sequence
 
-from sqlalchemy import ARRAY, TIMESTAMP, String, INTEGER, and_, bindparam, select, text, tuple_, update
+from sqlalchemy import ARRAY, TIMESTAMP, Integer, String, INTEGER, and_, bindparam, select, text, tuple_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.data import Data
@@ -264,10 +264,10 @@ class DataRepository(SQLAlchemyRepository[Data]):
         tag: str,
         group_mode: Literal["raw", "1d", "3d", "7d", "1mon"] = "raw"
     ):
-        values_sql = ", ".join(
-            f"({sync_id}, '{group_name}')" 
-            for sync_id, group_name in groups
-        )
+        # values_sql = ", ".join(
+        #     f"({sync_id}, '{group_name}')" 
+        #     for sync_id, group_name in groups
+        # )
         # stmt = text(
         #     f"""
         #         WITH groups(device_sync_id, group_name) AS (
@@ -291,10 +291,13 @@ class DataRepository(SQLAlchemyRepository[Data]):
         #     bindparam("tag", tag, type_=String)
         # )
 
+        sync_ids = [sid for sid, _ in groups]
+        names = [name for _, name in groups]
+
         stmt = text(
             f"""
                 WITH groups(device_sync_id, group_name) AS (
-                    VALUES {values_sql}
+                    SELECT * FROM unnest(:sync_ids, :group_names) AS t(device_sync_id, group_name)
                 ),
 
                 base AS (
@@ -316,8 +319,10 @@ class DataRepository(SQLAlchemyRepository[Data]):
                             WHEN :group_mode = '1d' THEN
                                 date_trunc('day', created_at)
                             WHEN :group_mode = '3d' THEN
-                                date_trunc('day', created_at)
-                                - ((EXTRACT(DOY FROM created_at)::int - 1) % 3) * INTERVAL '1 day'
+                                (
+                                    date_trunc('day', :start)
+                                    + (((created_at::date - CAST(:start AS date)) / 3) * 3) * INTERVAL '1 day'
+                                )
                             WHEN :group_mode = '7d' THEN
                                 date_trunc('week', created_at)
                             WHEN :group_mode = '1mon' THEN
@@ -340,7 +345,9 @@ class DataRepository(SQLAlchemyRepository[Data]):
             bindparam("start", start, type_=TIMESTAMP),
             bindparam("end", end, type_=TIMESTAMP),
             bindparam("tag", tag, type_=String),
-            bindparam("group_mode", group_mode, type_=String)
+            bindparam("group_mode", group_mode, type_=String),
+            bindparam("sync_ids", sync_ids, type_=ARRAY(Integer)),
+            bindparam("group_names", names, type_=ARRAY(String)),
         )
 
         res = await self.async_session.execute(stmt)
