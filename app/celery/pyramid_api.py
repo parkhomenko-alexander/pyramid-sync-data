@@ -38,7 +38,7 @@ class PyramidAPI():
             api_pas: str = config.API_PAS,
             soap_user: str = config.API_SOAP_USER, 
             soap_pas: str = config.API_SOAP_PAS, 
-            timeout: int = 10
+            timeout: int = config.API_CALLS_DELAY_TIMEOUT_ERROR
         ):
 
         self.session: Session = Session()
